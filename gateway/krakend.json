@@ -1,0 +1,111 @@
+{
+  "version": 3,
+  "name": "Money App API Gateway",
+  "port": 8080,
+  "cache_ttl": "3600s",
+  "timeout": "3s",
+  "extra_config": {
+    "security/cors": {
+      "allow_origins": ["http://localhost:3000", "http://localhost:3001"],
+      "allow_methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+      "allow_headers": ["Origin", "Authorization", "Content-Type"],
+      "expose_headers": ["Content-Length"],
+      "max_age": "12h"
+    },
+    "telemetry/logging": {
+      "level": "INFO",
+      "syslog": false,
+      "stdout": true
+    }
+  },
+  "endpoints": [
+    {
+      "endpoint": "/api/v1/users",
+      "method": "GET",
+      "backend": [
+        {
+          "url_pattern": "/users",
+          "host": ["http://user-service:3001"],
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/v1/users",
+      "method": "POST",
+      "backend": [
+        {
+          "url_pattern": "/users",
+          "host": ["http://user-service:3001"],
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/v1/auth/login",
+      "method": "POST",
+      "backend": [
+        {
+          "url_pattern": "/auth/login",
+          "host": ["http://user-service:3001"],
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/v1/financials",
+      "method": "GET",
+      "backend": [
+        {
+          "url_pattern": "/financials",
+          "host": ["http://financial-service:3002"],
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/v1/investments",
+      "method": "GET",
+      "backend": [
+        {
+          "url_pattern": "/investments",
+          "host": ["http://investment-service:3003"],
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/v1/notifications",
+      "method": "GET",
+      "backend": [
+        {
+          "url_pattern": "/notifications",
+          "host": ["http://notification-service:3004"],
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/v1/payments",
+      "method": "GET",
+      "backend": [
+        {
+          "url_pattern": "/payments",
+          "host": ["http://payment-service:3005"],
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/v1/analytics",
+      "method": "GET",
+      "backend": [
+        {
+          "url_pattern": "/analytics",
+          "host": ["http://analytics-service:3006"],
+          "disable_host_sanitize": false
+        }
+      ]
+    }
+  ]
+}
