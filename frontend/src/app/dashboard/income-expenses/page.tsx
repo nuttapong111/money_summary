@@ -4,7 +4,8 @@ import { useState } from 'react'
 import {
   BanknotesIcon, PlusIcon, FunnelIcon, CalendarIcon,
   ChartBarIcon, ArrowTrendingUpIcon, ArrowTrendingDownIcon,
-  XMarkIcon, PencilIcon, TrashIcon, ChevronLeftIcon, ChevronRightIcon
+  XMarkIcon, PencilIcon, TrashIcon, ChevronLeftIcon, ChevronRightIcon,
+  CogIcon
 } from '@heroicons/react/24/outline'
 
 interface Transaction {
@@ -24,9 +25,18 @@ interface CategorySummary {
   percentage: number
 }
 
+interface MonthlyBudget {
+  category: string
+  budget: number
+  spent: number
+  remaining: number
+  status: 'under' | 'over' | 'warning'
+}
+
 export default function IncomeExpensesPage() {
   const [showAddForm, setShowAddForm] = useState(false)
   const [showFilters, setShowFilters] = useState(false)
+  const [showBudgetSettings, setShowBudgetSettings] = useState(false)
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage] = useState(10)
@@ -47,6 +57,43 @@ export default function IncomeExpensesPage() {
     description: '',
     date: new Date().toISOString().split('T')[0],
     isRecurring: false
+  })
+
+  // Monthly budget settings
+  const [monthlyBudgets, setMonthlyBudgets] = useState<MonthlyBudget[]>([
+    { category: 'ค่าอาหาร', budget: 15000, spent: 8000, remaining: 7000, status: 'under' },
+    { category: 'ค่าที่พัก', budget: 20000, spent: 15000, remaining: 5000, status: 'under' },
+    { category: 'ค่าขนส่ง', budget: 5000, spent: 3000, remaining: 2000, status: 'under' },
+    { category: 'ค่าไฟฟ้า', budget: 3000, spent: 2500, remaining: 500, status: 'warning' },
+    { category: 'ค่าน้ำ', budget: 1000, spent: 800, remaining: 200, status: 'under' },
+    { category: 'ค่าโทรศัพท์', budget: 1500, spent: 1200, remaining: 300, status: 'under' },
+    { category: 'ค่าอินเทอร์เน็ต', budget: 1000, spent: 800, remaining: 200, status: 'under' },
+    { category: 'ค่าสันทนาการ', budget: 8000, spent: 5000, remaining: 3000, status: 'under' }
+  ])
+
+  // Monthly data for charts
+  const [monthlyData, setMonthlyData] = useState([
+    { month: 'ม.ค. 2024', income: 57000, expenses: 43000, balance: 14000 },
+    { month: 'ก.พ. 2024', income: 57000, expenses: 41000, balance: 16000 },
+    { month: 'มี.ค. 2024', income: 57000, expenses: 45000, balance: 12000 },
+    { month: 'เม.ย. 2024', income: 57000, expenses: 42000, balance: 15000 },
+    { month: 'พ.ค. 2024', income: 57000, expenses: 48000, balance: 9000 },
+    { month: 'มิ.ย. 2024', income: 57000, expenses: 40000, balance: 17000 },
+    { month: 'ก.ค. 2024', income: 57000, expenses: 44000, balance: 13000 },
+    { month: 'ส.ค. 2024', income: 57000, expenses: 46000, balance: 11000 },
+    { month: 'ก.ย. 2024', income: 57000, expenses: 42000, balance: 15000 },
+    { month: 'ต.ค. 2024', income: 57000, expenses: 45000, balance: 12000 },
+    { month: 'พ.ย. 2024', income: 57000, expenses: 43000, balance: 14000 },
+    { month: 'ธ.ค. 2024', income: 57000, expenses: 47000, balance: 10000 }
+  ])
+
+  // Budget management states
+  const [showAddBudget, setShowAddBudget] = useState(false)
+  const [editingBudget, setEditingBudget] = useState<MonthlyBudget | null>(null)
+  const [newBudget, setNewBudget] = useState({
+    category: '',
+    budget: '',
+    spent: ''
   })
 
   const [transactions, setTransactions] = useState<Transaction[]>([
@@ -243,9 +290,9 @@ export default function IncomeExpensesPage() {
     if (confirm('คุณต้องการลบรายการนี้หรือไม่?')) {
       setTransactions(prev => prev.filter(t => t.id !== id))
       // Reset to first page if current page becomes empty
-      const totalPages = Math.ceil((filteredTransactions.length - 1) / itemsPerPage)
-      if (currentPage > totalPages && totalPages > 0) {
-        setCurrentPage(totalPages)
+      const newTotalPages = Math.ceil((filteredTransactions.length - 1) / itemsPerPage)
+      if (currentPage > newTotalPages && newTotalPages > 0) {
+        setCurrentPage(newTotalPages)
       }
     }
   }
@@ -259,23 +306,7 @@ export default function IncomeExpensesPage() {
     return true
   })
 
-  // Pagination logic
-  const totalPages = Math.ceil(filteredTransactions.length / itemsPerPage)
-  const startIndex = (currentPage - 1) * itemsPerPage
-  const endIndex = startIndex + itemsPerPage
-  const currentTransactions = filteredTransactions.slice(startIndex, endIndex)
 
-  const goToPage = (page: number) => {
-    setCurrentPage(Math.max(1, Math.min(page, totalPages)))
-  }
-
-  const goToPreviousPage = () => {
-    setCurrentPage(prev => Math.max(1, prev - 1))
-  }
-
-  const goToNextPage = () => {
-    setCurrentPage(prev => Math.min(totalPages, prev + 1))
-  }
 
   // Calculate category summaries
   const getCategorySummary = (type: 'income' | 'expense'): CategorySummary[] => {
@@ -310,6 +341,24 @@ export default function IncomeExpensesPage() {
 
   const netAmount = totalIncome - totalExpense
 
+  // Pagination logic
+  const totalPages = Math.ceil(filteredTransactions.length / itemsPerPage)
+  const startIndex = (currentPage - 1) * itemsPerPage
+  const endIndex = startIndex + itemsPerPage
+  const currentTransactions = filteredTransactions.slice(startIndex, endIndex)
+
+  const goToPage = (page: number) => {
+    setCurrentPage(page)
+  }
+
+  const goToPreviousPage = () => {
+    setCurrentPage(prev => Math.max(prev - 1, 1))
+  }
+
+  const goToNextPage = () => {
+    setCurrentPage(prev => Math.min(prev + 1, totalPages))
+  }
+
   const resetFilters = () => {
     setFilters({
       type: 'all',
@@ -322,6 +371,60 @@ export default function IncomeExpensesPage() {
     setCurrentPage(1) // Reset to first page when clearing filters
   }
 
+  // Budget management functions
+  const handleAddBudget = () => {
+    if (newBudget.category && newBudget.budget) {
+      const budget = parseFloat(newBudget.budget)
+      const spent = parseFloat(newBudget.spent) || 0
+      const remaining = budget - spent
+      
+      setMonthlyBudgets(prev => [...prev, {
+        category: newBudget.category,
+        budget,
+        spent,
+        remaining,
+        status: remaining < 0 ? 'over' : remaining < budget * 0.2 ? 'warning' : 'under'
+      }])
+      
+      setNewBudget({ category: '', budget: '', spent: '' })
+      setShowAddBudget(false)
+    }
+  }
+
+  const handleEditBudget = (budget: MonthlyBudget) => {
+    setEditingBudget(budget)
+    setNewBudget({
+      category: budget.category,
+      budget: budget.budget.toString(),
+      spent: budget.spent.toString()
+    })
+    setShowAddBudget(true)
+  }
+
+  const handleUpdateBudget = () => {
+    if (editingBudget && newBudget.category && newBudget.budget) {
+      const budget = parseFloat(newBudget.budget)
+      const spent = parseFloat(newBudget.spent) || 0
+      const remaining = budget - spent
+      
+      setMonthlyBudgets(prev => prev.map(b => 
+        b.category === editingBudget.category 
+          ? { ...b, budget, spent, remaining, status: remaining < 0 ? 'over' : remaining < budget * 0.2 ? 'warning' : 'under' }
+          : b
+      ))
+      
+      setNewBudget({ category: '', budget: '', spent: '' })
+      setEditingBudget(null)
+      setShowAddBudget(false)
+    }
+  }
+
+  const handleDeleteBudget = (category: string) => {
+    if (confirm(`คุณต้องการลบหมวดหมู่ "${category}" หรือไม่?`)) {
+      setMonthlyBudgets(prev => prev.filter(b => b.category !== category))
+    }
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -330,13 +433,23 @@ export default function IncomeExpensesPage() {
           <h1 className="text-2xl font-bold text-gray-900">รายรับ-รายจ่าย</h1>
           <p className="text-gray-600">จัดการรายรับและรายจ่ายของคุณ</p>
         </div>
-        <button
-          onClick={() => setShowAddForm(true)}
-          className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors flex items-center space-x-2"
-        >
-          <PlusIcon className="w-5 h-5" />
-          <span>เพิ่มรายการ</span>
-        </button>
+        <div className="flex items-center space-x-3">
+          <button
+            onClick={() => setShowBudgetSettings(true)}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+          >
+            <CogIcon className="w-5 h-5" />
+            <span>ตั้งค่าค่าใช้จ่าย</span>
+          </button>
+
+          <button
+            onClick={() => setShowAddForm(true)}
+            className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors flex items-center space-x-2"
+          >
+            <PlusIcon className="w-5 h-5" />
+            <span>เพิ่มรายการ</span>
+          </button>
+        </div>
       </div>
 
       {/* Summary Cards */}
@@ -367,6 +480,89 @@ export default function IncomeExpensesPage() {
               <p className={`text-2xl font-bold ${netAmount >= 0 ? 'text-blue-900' : 'text-orange-900'}`}>
                 ฿{netAmount.toLocaleString()}
               </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Monthly Income vs Expenses Chart */}
+      <div className="card">
+        <h3 className="text-lg font-semibold text-gray-900 mb-6 flex items-center space-x-2">
+          <ChartBarIcon className="w-5 h-5 text-purple-600" />
+          <span>กราฟรายรับ-รายจ่ายรายเดือน (12 เดือนล่าสุด)</span>
+        </h3>
+        <div className="overflow-x-auto">
+          <div className="min-w-[1300px]">
+            {/* Y-axis labels */}
+            <div className="flex items-end justify-between h-64 px-4 pb-4 border-b border-l border-gray-300 relative">
+              {/* Y-axis values */}
+              <div className="absolute left-0 top-0 h-full flex flex-col justify-between text-xs text-gray-600 -ml-24">
+                <span className="whitespace-nowrap text-gray-800 font-medium">฿60,000</span>
+                <span className="whitespace-nowrap text-gray-800 font-medium">฿45,000</span>
+                <span className="whitespace-nowrap text-gray-800 font-medium">฿30,000</span>
+                <span className="whitespace-nowrap text-gray-800 font-medium">฿15,000</span>
+                <span className="whitespace-nowrap text-gray-800 font-medium">฿0</span>
+              </div>
+              
+              {/* Chart bars */}
+              <div className="flex items-end justify-between w-full pl-24">
+                {monthlyData.map((data, index) => (
+                  <div key={index} className="flex items-end space-x-1">
+                    {/* Income Bar */}
+                    <div className="relative group">
+                      <div 
+                        className="w-6 bg-green-500 rounded-t-sm transition-all duration-300 hover:bg-green-600 cursor-pointer"
+                        style={{ height: `${(data.income / 60000) * 200}px` }}
+                      ></div>
+                      {/* Hover tooltip for income */}
+                      <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-green-600 text-white text-xs px-2 py-1 rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10 pointer-events-none">
+                        <div className="font-medium">รายรับ</div>
+                        <div>฿{data.income.toLocaleString()}</div>
+                        <div className="text-xs opacity-75">{data.month}</div>
+                        {/* Arrow pointing down */}
+                        <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-green-600"></div>
+                      </div>
+                    </div>
+                    
+                    {/* Expense Bar */}
+                    <div className="relative group">
+                      <div 
+                        className="w-6 bg-red-500 rounded-t-sm transition-all duration-300 hover:bg-red-600 cursor-pointer"
+                        style={{ height: `${(data.expenses / 60000) * 200}px` }}
+                      ></div>
+                      {/* Hover tooltip for expense */}
+                      <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-red-600 text-white text-xs px-2 py-1 rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10 pointer-events-none">
+                        <div className="font-medium">รายจ่าย</div>
+                        <div>฿{data.expenses.toLocaleString()}</div>
+                        <div className="text-xs opacity-75">{data.month}</div>
+                        {/* Arrow pointing down */}
+                        <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-red-600"></div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            {/* X-axis month labels */}
+            <div className="flex justify-between px-4 mt-2">
+              {monthlyData.map((data, index) => (
+                <div key={index} className="text-xs text-gray-600 text-center w-12">
+                  {data.month}
+                </div>
+              ))}
+            </div>
+            
+            {/* Legend */}
+            <div className="flex items-center justify-center space-x-6 mt-4">
+              <div className="flex items-center space-x-2">
+                <div className="w-4 h-4 bg-green-500 rounded"></div>
+                <span className="text-sm text-gray-700">รายรับ</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="w-4 h-4 bg-red-500 rounded"></div>
+                <span className="text-sm text-gray-700">รายจ่าย</span>
+              </div>
             </div>
           </div>
         </div>
@@ -419,7 +615,7 @@ export default function IncomeExpensesPage() {
           {expenseSummary.length > 0 ? (
             <div className="space-y-3">
               {expenseSummary.map((item, index) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
+                <div className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
                   <div className="flex-1">
                     <div className="flex items-center justify-between mb-1">
                       <span className="font-medium text-gray-900">{item.category}</span>
@@ -552,133 +748,165 @@ export default function IncomeExpensesPage() {
         )}
       </div>
 
-      {/* Add/Edit Transaction Form */}
+      {/* Add Transaction Modal */}
       {showAddForm && (
-        <div className="card border-2 border-primary-200">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">
-              {editingTransaction ? 'แก้ไขรายการ' : 'เพิ่มรายการใหม่'}
-            </h3>
-            <button
-              onClick={() => {
-                setShowAddForm(false)
-                setEditingTransaction(null)
-                setNewTransaction({
-                  type: 'income',
-                  category: '',
-                  amount: '',
-                  description: '',
-                  date: new Date().toISOString().split('T')[0],
-                  isRecurring: false
-                })
-              }}
-              className="p-1 text-gray-400 hover:text-gray-600"
-            >
-              <XMarkIcon className="w-5 h-5" />
-            </button>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">ประเภท</label>
-              <select
-                value={newTransaction.type}
-                onChange={(e) => setNewTransaction(prev => ({ 
-                  ...prev, 
-                  type: e.target.value as 'income' | 'expense',
-                  category: '' // Reset category when type changes
-                }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-8 w-full max-w-lg shadow-2xl">
+            <div className="flex items-center justify-between mb-8">
+              <h2 className="text-2xl font-bold text-gray-900">
+                {editingTransaction ? 'แก้ไขรายการ' : 'เพิ่มรายการใหม่'}
+              </h2>
+              <button
+                onClick={() => {
+                  setShowAddForm(false)
+                  setEditingTransaction(null)
+                  setNewTransaction({
+                    type: 'income',
+                    category: '',
+                    amount: '',
+                    description: '',
+                    date: new Date().toISOString().split('T')[0],
+                    isRecurring: false
+                  })
+                }}
+                className="text-gray-400 hover:text-gray-600 transition-colors p-2 hover:bg-gray-100 rounded-full"
               >
-                <option value="income">รายรับ</option>
-                <option value="expense">รายจ่าย</option>
-              </select>
+                <XMarkIcon className="w-6 h-6" />
+              </button>
             </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">หมวดหมู่</label>
-              <select
-                value={newTransaction.category}
-                onChange={(e) => setNewTransaction(prev => ({ ...prev, category: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-              >
-                <option value="">เลือกหมวดหมู่</option>
-                {newTransaction.type === 'income' ? 
-                  incomeCategories.map(cat => <option key={cat} value={cat}>{cat}</option>) :
-                  expenseCategories.map(cat => <option key={cat} value={cat}>{cat}</option>)
-                }
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">จำนวนเงิน</label>
-              <input
-                type="number"
-                value={newTransaction.amount}
-                onChange={(e) => setNewTransaction(prev => ({ ...prev, amount: e.target.value }))}
-                placeholder="0.00"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">วันที่</label>
-              <input
-                type="date"
-                value={newTransaction.date}
-                onChange={(e) => setNewTransaction(prev => ({ ...prev, date: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-              />
-            </div>
-
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-2">คำอธิบาย</label>
-              <input
-                type="text"
-                value={newTransaction.description}
-                onChange={(e) => setNewTransaction(prev => ({ ...prev, description: e.target.value }))}
-                placeholder="อธิบายรายการนี้"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-              />
-            </div>
-
-            <div className="md:col-span-2">
-              <label className="flex items-center space-x-2">
+            
+            <div className="space-y-6">
+              {/* Transaction Type Selection */}
+              <div className="grid grid-cols-2 gap-4">
+                <button
+                  onClick={() => setNewTransaction(prev => ({ ...prev, type: 'income' }))}
+                  className={`p-4 rounded-lg border-2 transition-all duration-200 ${
+                    newTransaction.type === 'income'
+                      ? 'border-green-500 bg-green-50 text-green-700'
+                      : 'border-gray-200 bg-white text-gray-600 hover:border-green-300'
+                  }`}
+                >
+                  <div className="flex flex-col items-center space-y-2">
+                    <ArrowTrendingUpIcon className="w-8 h-8" />
+                    <span className="font-medium">รายรับ</span>
+                  </div>
+                </button>
+                
+                <button
+                  onClick={() => setNewTransaction(prev => ({ ...prev, type: 'expense' }))}
+                  className={`p-4 rounded-lg border-2 transition-all duration-200 ${
+                    newTransaction.type === 'expense'
+                      ? 'border-red-500 bg-red-50 text-red-700'
+                      : 'border-gray-200 bg-white text-gray-600 hover:border-red-300'
+                  }`}
+                >
+                  <div className="flex flex-col items-center space-y-2">
+                    <ArrowTrendingDownIcon className="w-8 h-8" />
+                    <span className="font-medium">รายจ่าย</span>
+                  </div>
+                </button>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">หมวดหมู่</label>
+                  <select
+                    value={newTransaction.category}
+                    onChange={(e) => setNewTransaction(prev => ({ ...prev, category: e.target.value }))}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  >
+                    <option value="">เลือกหมวดหมู่</option>
+                    {newTransaction.type === 'income' ? (
+                      incomeCategories.map(cat => (
+                        <option key={cat} value={cat}>{cat}</option>
+                      ))
+                    ) : (
+                      expenseCategories.map(cat => (
+                        <option key={cat} value={cat}>{cat}</option>
+                      ))
+                    )}
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">จำนวนเงิน (บาท)</label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">฿</span>
+                    <input
+                      type="number"
+                      value={newTransaction.amount}
+                      onChange={(e) => setNewTransaction(prev => ({ ...prev, amount: e.target.value }))}
+                      className="w-full pl-8 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                      placeholder="0"
+                    />
+                  </div>
+                </div>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">คำอธิบาย</label>
                 <input
-                  type="checkbox"
-                  checked={newTransaction.isRecurring}
-                  onChange={(e) => setNewTransaction(prev => ({ ...prev, isRecurring: e.target.checked }))}
-                  className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                  type="text"
+                  value={newTransaction.description}
+                  onChange={(e) => setNewTransaction(prev => ({ ...prev, description: e.target.value }))}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  placeholder="เช่น เงินเดือนเดือนนี้, ค่าอาหารกลางวัน"
                 />
-                <span className="text-sm text-gray-700">รายการที่เกิดขึ้นเป็นประจำ</span>
-              </label>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">วันที่</label>
+                  <input
+                    type="date"
+                    value={newTransaction.date}
+                    onChange={(e) => setNewTransaction(prev => ({ ...prev, date: e.target.value }))}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  />
+                </div>
+                
+                <div className="flex items-center space-x-3">
+                  <input
+                    type="checkbox"
+                    id="recurring"
+                    checked={newTransaction.isRecurring}
+                    onChange={(e) => setNewTransaction(prev => ({ ...prev, isRecurring: e.target.checked }))}
+                    className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  />
+                  <label htmlFor="recurring" className="text-sm text-gray-700 font-medium">รายการประจำ</label>
+                </div>
+              </div>
             </div>
-          </div>
-
-          <div className="flex justify-end space-x-3 mt-4">
-            <button
-              onClick={() => {
-                setShowAddForm(false)
-                setEditingTransaction(null)
-                setNewTransaction({
-                  type: 'income',
-                  category: '',
-                  amount: '',
-                  description: '',
-                  date: new Date().toISOString().split('T')[0],
-                  isRecurring: false
-                })
-              }}
-              className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
-            >
-              ยกเลิก
-            </button>
-            <button
-              onClick={editingTransaction ? handleUpdateTransaction : handleAddTransaction}
-              className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
-            >
-              {editingTransaction ? 'อัปเดต' : 'เพิ่มรายการ'}
-            </button>
+            
+            <div className="flex justify-end space-x-4 mt-8 pt-6 border-t border-gray-200">
+              <button
+                onClick={() => {
+                  setShowAddForm(false)
+                  setEditingTransaction(null)
+                  setNewTransaction({
+                    type: 'income',
+                    category: '',
+                    amount: '',
+                    description: '',
+                    date: new Date().toISOString().split('T')[0],
+                    isRecurring: false
+                  })
+                }}
+                className="px-6 py-3 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+              >
+                ยกเลิก
+              </button>
+              <button
+                onClick={editingTransaction ? handleUpdateTransaction : handleAddTransaction}
+                className={`px-6 py-3 text-white rounded-lg font-medium transition-colors ${
+                  newTransaction.type === 'income'
+                    ? 'bg-green-600 hover:bg-green-700'
+                    : 'bg-red-600 hover:bg-red-700'
+                }`}
+              >
+                {editingTransaction ? 'อัปเดต' : 'เพิ่มรายการ'}
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -844,6 +1072,170 @@ export default function IncomeExpensesPage() {
           </div>
         )}
       </div>
+
+      {/* Budget Settings Modal */}
+      {showBudgetSettings && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-6xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold text-gray-900">ตั้งค่าค่าใช้จ่ายรายเดือน</h2>
+              <div className="flex items-center space-x-3">
+                <button
+                  onClick={() => setShowAddBudget(true)}
+                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2"
+                >
+                  <PlusIcon className="w-4 h-4" />
+                  <span>เพิ่มหมวดหมู่</span>
+                </button>
+                <button
+                  onClick={() => setShowBudgetSettings(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <XMarkIcon className="w-6 h-6" />
+                </button>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+              {monthlyBudgets.map((budget, index) => (
+                <div key={budget.category} className="border rounded-lg p-4 relative">
+                  <div className="absolute top-2 right-2 flex items-center space-x-1">
+                    <button
+                      onClick={() => handleEditBudget(budget)}
+                      className="text-blue-600 hover:text-blue-800 p-1"
+                      title="แก้ไข"
+                    >
+                      <PencilIcon className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteBudget(budget.category)}
+                      className="text-red-600 hover:text-red-800 p-1"
+                      title="ลบ"
+                    >
+                      <TrashIcon className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <h3 className="font-medium text-gray-900 mb-2 pr-16">{budget.category}</h3>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">งบประมาณ:</span>
+                      <span className="font-medium">฿{budget.budget.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">ใช้ไปแล้ว:</span>
+                      <span className="font-medium">฿{budget.spent.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">เหลือ:</span>
+                      <span className={`font-medium ${
+                        budget.remaining < 0 ? 'text-red-600' : 
+                        budget.remaining < budget.budget * 0.2 ? 'text-orange-600' : 'text-green-600'
+                      }`}>
+                        ฿{budget.remaining.toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div 
+                        className={`h-2 rounded-full ${
+                          budget.spent > budget.budget ? 'bg-red-500' : 
+                          budget.spent > budget.budget * 0.8 ? 'bg-orange-500' : 'bg-green-500'
+                        }`}
+                        style={{ width: `${Math.min((budget.spent / budget.budget) * 100, 100)}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => setShowBudgetSettings(false)}
+                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+              >
+                ปิด
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add/Edit Budget Modal */}
+      {showAddBudget && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold text-gray-900">
+                {editingBudget ? 'แก้ไขหมวดหมู่' : 'เพิ่มหมวดหมู่ใหม่'}
+              </h2>
+              <button
+                onClick={() => {
+                  setShowAddBudget(false)
+                  setEditingBudget(null)
+                  setNewBudget({ category: '', budget: '', spent: '' })
+                }}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <XMarkIcon className="w-6 h-6" />
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">ชื่อหมวดหมู่</label>
+                <input
+                  type="text"
+                  value={newBudget.category}
+                  onChange={(e) => setNewBudget(prev => ({ ...prev, category: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="เช่น ค่าอาหาร"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">งบประมาณ (บาท)</label>
+                <input
+                  type="number"
+                  value={newBudget.budget}
+                  onChange={(e) => setNewBudget(prev => ({ ...prev, budget: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="0"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">ใช้ไปแล้ว (บาท)</label>
+                <input
+                  type="number"
+                  value={newBudget.spent}
+                  onChange={(e) => setNewBudget(prev => ({ ...prev, spent: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="0"
+                />
+              </div>
+            </div>
+            
+            <div className="flex justify-end space-x-3 mt-6">
+              <button
+                onClick={() => {
+                  setShowAddBudget(false)
+                  setEditingBudget(null)
+                  setNewBudget({ category: '', budget: '', spent: '' })
+                }}
+                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+              >
+                ยกเลิก
+              </button>
+              <button
+                onClick={editingBudget ? handleUpdateBudget : handleAddBudget}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              >
+                {editingBudget ? 'อัปเดต' : 'เพิ่ม'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+
     </div>
   )
 }
