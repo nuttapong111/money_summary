@@ -30,6 +30,8 @@ export default function InvestmentPortfolioPage() {
   const [newInvestment, setNewInvestment] = useState({
     name: '',
     value: '',
+    pricePerUnit: '',
+    units: '',
     type: 'stock',
     risk: 'medium',
     market: '',
@@ -188,6 +190,35 @@ export default function InvestmentPortfolioPage() {
     }))
   }
 
+  // ฟังก์ชันสำหรับคำนวณมูลค่ารวม
+  const calculateTotalValue = (pricePerUnit: string, units: string) => {
+    const price = parseFloat(pricePerUnit) || 0
+    const unitCount = parseFloat(units) || 0
+    return (price * unitCount).toFixed(2)
+  }
+
+  // ฟังก์ชันสำหรับจัดการการเปลี่ยนแปลงราคาต่อหน่วย
+  const handlePricePerUnitChange = (value: number | null) => {
+    const pricePerUnit = value ? value.toString() : ''
+    const totalValue = calculateTotalValue(pricePerUnit, newInvestment.units)
+    setNewInvestment(prev => ({
+      ...prev,
+      pricePerUnit,
+      value: totalValue
+    }))
+  }
+
+  // ฟังก์ชันสำหรับจัดการการเปลี่ยนแปลงจำนวนหน่วย
+  const handleUnitsChange = (value: number | null) => {
+    const units = value ? value.toString() : ''
+    const totalValue = calculateTotalValue(newInvestment.pricePerUnit, units)
+    setNewInvestment(prev => ({
+      ...prev,
+      units,
+      value: totalValue
+    }))
+  }
+
   // ฟังก์ชันสำหรับดึงรายการหุ้นตามตลาด
   const getStocksByMarket = (market: string) => {
     switch (market) {
@@ -203,8 +234,8 @@ export default function InvestmentPortfolioPage() {
   }
 
   const handleAddInvestment = () => {
-    if (!newInvestment.value) {
-      alert('กรุณากรอกมูลค่าให้ครบถ้วน')
+    if (!newInvestment.pricePerUnit || !newInvestment.units || !newInvestment.value) {
+      alert('กรุณากรอกราคาต่อหน่วยและจำนวนหน่วยให้ครบถ้วน')
       return
     }
 
@@ -246,6 +277,8 @@ export default function InvestmentPortfolioPage() {
     setNewInvestment({
       name: '',
       value: '',
+      pricePerUnit: '',
+      units: '',
       type: 'stock',
       risk: 'medium',
       market: '',
@@ -572,7 +605,33 @@ export default function InvestmentPortfolioPage() {
             <div className="space-y-4">
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">มูลค่า (บาท)</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">ราคาต่อหน่วย (บาท)</label>
+                <InputNumber
+                  value={newInvestment.pricePerUnit ? parseFloat(newInvestment.pricePerUnit) : undefined}
+                  onChange={handlePricePerUnitChange}
+                  className="w-full"
+                  placeholder="0"
+                  formatter={(value) => `฿ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                  parser={(value) => parseFloat(value!.replace(/฿\s?|(,*)/g, ''))}
+                  min={0}
+                  step={0.01}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">จำนวนหน่วย</label>
+                <InputNumber
+                  value={newInvestment.units ? parseFloat(newInvestment.units) : undefined}
+                  onChange={handleUnitsChange}
+                  className="w-full"
+                  placeholder="0"
+                  min={0}
+                  step={0.01}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">มูลค่ารวม (บาท)</label>
                 <InputNumber
                   value={newInvestment.value ? parseFloat(newInvestment.value) : undefined}
                   onChange={(value) => setNewInvestment(prev => ({ ...prev, value: value ? value.toString() : '' }))}
@@ -581,6 +640,7 @@ export default function InvestmentPortfolioPage() {
                   formatter={(value) => `฿ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
                   parser={(value) => parseFloat(value!.replace(/฿\s?|(,*)/g, ''))}
                   min={0}
+                  disabled
                 />
               </div>
               
