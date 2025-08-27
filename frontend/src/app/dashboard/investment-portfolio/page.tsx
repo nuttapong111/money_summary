@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { 
   ArrowTrendingUpIcon,
   ChartBarIcon,
@@ -23,6 +23,7 @@ interface Investment {
 }
 
 export default function InvestmentPortfolioPage() {
+  const [mounted, setMounted] = useState(false)
   const [showAddForm, setShowAddForm] = useState(false)
   const [newInvestment, setNewInvestment] = useState({
     name: '',
@@ -30,6 +31,10 @@ export default function InvestmentPortfolioPage() {
     type: 'stock',
     risk: 'medium'
   })
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
 
   // Mock data
@@ -330,7 +335,7 @@ export default function InvestmentPortfolioPage() {
           <div className="h-[500px] flex items-center justify-center">
             <div className="relative flex items-center justify-center w-full">
               {/* Pie Chart */}
-              {createPieChart()}
+              {mounted && createPieChart()}
             </div>
           </div>
         </div>
@@ -398,16 +403,9 @@ export default function InvestmentPortfolioPage() {
               <div className="card">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">ประวัติมูลค่าพอร์ต</h3>
           <div className="h-80 w-full overflow-hidden">
-            {createLineChart()}
+            {mounted && createLineChart()}
           </div>
-        <div className="mt-4 grid grid-cols-6 gap-2 text-center">
-          {portfolioHistory.map((item, index) => (
-            <div key={index} className="text-sm">
-              <p className="text-gray-600">{item.month}</p>
-              <p className="font-medium text-gray-900">฿{item.value.toLocaleString()}</p>
-            </div>
-          ))}
-        </div>
+
       </div>
 
       {/* Investment Recommendations */}
