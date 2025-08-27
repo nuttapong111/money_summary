@@ -14,6 +14,8 @@ import {
   XMarkIcon
 } from '@heroicons/react/24/outline'
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, Area, AreaChart } from 'recharts'
+import { DatePicker } from 'antd'
+import dayjs from 'dayjs'
 
 export default function FinancialGoalsPage() {
   const [mounted, setMounted] = useState(false)
@@ -22,7 +24,7 @@ export default function FinancialGoalsPage() {
   const [newGoal, setNewGoal] = useState({
     name: '',
     target: '',
-    deadline: '',
+    deadline: null as any,
     type: 'medium',
     monthlyInvestment: '',
     priority: 'medium',
@@ -133,7 +135,7 @@ export default function FinancialGoalsPage() {
       name: newGoal.name,
       target: parseFloat(newGoal.target),
       current: 0,
-      deadline: newGoal.deadline,
+      deadline: newGoal.deadline ? dayjs(newGoal.deadline).format('YYYY') : '',
       type: newGoal.type,
       monthlyInvestment: parseFloat(newGoal.monthlyInvestment),
       priority: newGoal.priority,
@@ -144,7 +146,7 @@ export default function FinancialGoalsPage() {
     setNewGoal({
       name: '',
       target: '',
-      deadline: '',
+      deadline: null,
       type: 'medium',
       monthlyInvestment: '',
       priority: 'medium',
@@ -167,7 +169,7 @@ export default function FinancialGoalsPage() {
         ...editingGoal,
         name: newGoal.name,
         target: parseFloat(newGoal.target),
-        deadline: newGoal.deadline,
+        deadline: newGoal.deadline ? dayjs(newGoal.deadline).format('YYYY') : '',
         type: newGoal.type,
         monthlyInvestment: parseFloat(newGoal.monthlyInvestment),
         priority: newGoal.priority,
@@ -179,7 +181,7 @@ export default function FinancialGoalsPage() {
     setNewGoal({
       name: '',
       target: '',
-      deadline: '',
+      deadline: null,
       type: 'medium',
       monthlyInvestment: '',
       priority: 'medium',
@@ -282,7 +284,7 @@ export default function FinancialGoalsPage() {
                         setNewGoal({
                           name: goal.name,
                           target: goal.target.toString(),
-                          deadline: goal.deadline,
+                          deadline: goal.deadline ? dayjs(goal.deadline, 'YYYY') : null,
                           type: goal.type,
                           monthlyInvestment: goal.monthlyInvestment.toString(),
                           priority: goal.priority,
@@ -347,7 +349,7 @@ export default function FinancialGoalsPage() {
                         setNewGoal({
                           name: goal.name,
                           target: goal.target.toString(),
-                          deadline: goal.deadline,
+                          deadline: goal.deadline ? dayjs(goal.deadline, 'YYYY') : null,
                           type: goal.type,
                           monthlyInvestment: goal.monthlyInvestment.toString(),
                           priority: goal.priority,
@@ -418,7 +420,7 @@ export default function FinancialGoalsPage() {
                       setNewGoal({
                         name: goal.name,
                         target: goal.target.toString(),
-                        deadline: goal.deadline,
+                        deadline: goal.deadline ? dayjs(goal.deadline, 'YYYY') : null,
                         type: goal.type,
                         monthlyInvestment: goal.monthlyInvestment.toString(),
                         priority: goal.priority,
@@ -715,12 +717,14 @@ export default function FinancialGoalsPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">วันที่เป้าหมาย</label>
-                <input
-                  type="text"
+                <DatePicker
                   value={newGoal.deadline}
-                  onChange={(e) => setNewGoal(prev => ({ ...prev, deadline: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                  placeholder="เช่น 2026, 2028"
+                  onChange={(date) => setNewGoal(prev => ({ ...prev, deadline: date }))}
+                  className="w-full"
+                  placeholder="เลือกปีเป้าหมาย"
+                  picker="year"
+                  format="YYYY"
+                  allowClear
                 />
               </div>
               <div>
@@ -772,24 +776,24 @@ export default function FinancialGoalsPage() {
             </div>
             
             <div className="flex justify-end space-x-3 mt-6">
-              <button
-                onClick={() => {
-                  setShowAddForm(false)
-                  setEditingGoal(null)
-                  setNewGoal({
-                    name: '',
-                    target: '',
-                    deadline: '',
-                    type: 'medium',
-                    monthlyInvestment: '',
-                    priority: 'medium',
-                    description: ''
-                  })
-                }}
-                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
-              >
-                ยกเลิก
-              </button>
+                              <button
+                  onClick={() => {
+                    setShowAddForm(false)
+                    setEditingGoal(null)
+                    setNewGoal({
+                      name: '',
+                      target: '',
+                      deadline: null,
+                      type: 'medium',
+                      monthlyInvestment: '',
+                      priority: 'medium',
+                      description: ''
+                    })
+                  }}
+                  className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+                >
+                  ยกเลิก
+                </button>
               <button
                 onClick={editingGoal ? handleEditGoal : handleAddGoal}
                 className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
