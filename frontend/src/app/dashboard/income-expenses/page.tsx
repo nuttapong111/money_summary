@@ -426,58 +426,64 @@ export default function IncomeExpensesPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">รายรับ-รายจ่าย</h1>
-          <p className="text-gray-600">จัดการรายรับและรายจ่ายของคุณ</p>
-        </div>
-        <div className="flex items-center space-x-3">
-          <button
-            onClick={() => setShowBudgetSettings(true)}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
-          >
-            <CogIcon className="w-5 h-5" />
-            <span>ตั้งค่าค่าใช้จ่าย</span>
-          </button>
-
-          <button
-            onClick={() => setShowAddForm(true)}
-            className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors flex items-center space-x-2"
-          >
-            <PlusIcon className="w-5 h-5" />
-            <span>เพิ่มรายการ</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="card bg-green-50 border-green-200">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
           <div className="flex items-center space-x-3">
-            <ArrowTrendingUpIcon className="w-8 h-8 text-green-600" />
             <div>
-              <p className="text-sm text-green-600">รายรับรวม</p>
-              <p className="text-2xl font-bold text-green-900">฿{totalIncome.toLocaleString()}</p>
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-900">รายรับ-รายจ่าย</h1>
+              <p className="text-sm sm:text-base text-gray-600">จัดการรายรับและรายจ่ายของคุณ</p>
+            </div>
+          </div>
+        
+        {/* Action Buttons - Full Width on Mobile */}
+        <div className="w-full sm:w-auto">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-3">
+            <button
+              onClick={() => setShowBudgetSettings(true)}
+              className="w-full sm:w-auto px-4 py-3 sm:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center sm:justify-start space-x-2 text-sm sm:text-base"
+            >
+              <CogIcon className="w-4 h-4 sm:w-5 sm:h-5" />
+              <span>ตั้งค่าค่าใช้จ่าย</span>
+            </button>
+
+            <button
+              onClick={() => setShowAddForm(true)}
+              className="w-full sm:w-auto px-4 py-3 sm:py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors flex items-center justify-center sm:justify-start space-x-2 text-sm sm:text-base"
+            >
+              <PlusIcon className="w-4 h-4 sm:w-5 sm:h-5" />
+              <span>เพิ่มรายการ</span>
+            </button>
+          </div>
+        </div>
+              </div>
+        
+        {/* Summary Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6">
+        <div className="card bg-green-50 border-green-200 p-3 sm:p-4">
+          <div className="flex items-center space-x-2 sm:space-x-3">
+            <ArrowTrendingUpIcon className="w-6 h-6 sm:w-8 sm:h-8 text-green-600 flex-shrink-0" />
+            <div className="min-w-0 flex-1">
+              <p className="text-xs sm:text-sm text-green-600">รายรับรวม</p>
+              <p className="text-lg sm:text-xl lg:text-2xl font-bold text-green-900 truncate">฿{totalIncome.toLocaleString()}</p>
             </div>
           </div>
         </div>
-        <div className="card bg-red-50 border-red-200">
-          <div className="flex items-center space-x-3">
-            <ArrowTrendingDownIcon className="w-8 h-8 text-red-600" />
-            <div>
-              <p className="text-sm text-red-600">รายจ่ายรวม</p>
-              <p className="text-2xl font-bold text-red-900">฿{totalExpense.toLocaleString()}</p>
+        <div className="card bg-red-50 border-red-200 p-3 sm:p-4">
+          <div className="flex items-center space-x-2 sm:space-x-3">
+            <ArrowTrendingDownIcon className="w-6 h-6 sm:w-8 sm:h-8 text-red-600 flex-shrink-0" />
+            <div className="min-w-0 flex-1">
+              <p className="text-xs sm:text-sm text-red-600">รายจ่ายรวม</p>
+              <p className="text-lg sm:text-xl lg:text-2xl font-bold text-red-900 truncate">฿{totalExpense.toLocaleString()}</p>
             </div>
           </div>
         </div>
-        <div className={`card ${netAmount >= 0 ? 'bg-blue-50 border-blue-200' : 'bg-orange-50 border-orange-200'}`}>
-          <div className="flex items-center space-x-3">
-            <ChartBarIcon className={`w-8 h-8 ${netAmount >= 0 ? 'text-blue-600' : 'text-orange-600'}`} />
-            <div>
-              <p className={`text-sm ${netAmount >= 0 ? 'text-blue-600' : 'text-orange-600'}`}>ยอดสุทธิ</p>
-              <p className={`text-2xl font-bold ${netAmount >= 0 ? 'text-blue-900' : 'text-orange-900'}`}>
+        <div className={`card ${netAmount >= 0 ? 'bg-blue-50 border-blue-200' : 'bg-orange-50 border-orange-200'} p-3 sm:p-4`}>
+          <div className="flex items-center space-x-2 sm:space-x-3">
+            <ChartBarIcon className={`w-6 h-6 sm:w-8 sm:h-8 ${netAmount >= 0 ? 'text-blue-600' : 'text-orange-600'} flex-shrink-0`} />
+            <div className="min-w-0 flex-1">
+              <p className={`text-xs sm:text-sm ${netAmount >= 0 ? 'text-blue-600' : 'text-orange-600'}`}>ยอดสุทธิ</p>
+              <p className={`text-lg sm:text-xl lg:text-2xl font-bold ${netAmount >= 0 ? 'text-blue-900' : 'text-orange-900'} truncate`}>
                 ฿{netAmount.toLocaleString()}
               </p>
             </div>
@@ -487,25 +493,25 @@ export default function IncomeExpensesPage() {
 
       {/* Monthly Income vs Expenses Chart */}
       <div className="card">
-        <h3 className="text-lg font-semibold text-gray-900 mb-6 flex items-center space-x-2">
-          <ChartBarIcon className="w-5 h-5 text-purple-600" />
-          <span>กราฟรายรับ-รายจ่ายรายเดือน (12 เดือนล่าสุด)</span>
+        <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4 sm:mb-6 flex items-center space-x-2">
+          <ChartBarIcon className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600 flex-shrink-0" />
+          <span className="text-sm sm:text-base">กราฟรายรับ-รายจ่ายรายเดือน (12 เดือนล่าสุด)</span>
         </h3>
         <div className="overflow-x-auto">
-          <div className="min-w-[1300px]">
-            {/* Y-axis labels */}
-            <div className="flex items-end justify-between h-64 px-4 pb-4 border-b border-l border-gray-300 relative">
-              {/* Y-axis values */}
-              <div className="absolute left-0 top-0 h-full flex flex-col justify-between text-xs text-gray-600 -ml-24">
-                <span className="whitespace-nowrap text-gray-800 font-medium">฿60,000</span>
-                <span className="whitespace-nowrap text-gray-800 font-medium">฿45,000</span>
-                <span className="whitespace-nowrap text-gray-800 font-medium">฿30,000</span>
-                <span className="whitespace-nowrap text-gray-800 font-medium">฿15,000</span>
-                <span className="whitespace-nowrap text-gray-800 font-medium">฿0</span>
+          <div className="min-w-[1500px] sm:min-w-[800px] lg:min-w-[1200px] xl:min-w-[1500px]">
+            {/* Chart Container with Y-axis */}
+            <div className="relative">
+              {/* Y-axis values - แสดงชัดเจนด้านซ้าย */}
+              <div className="absolute left-0 top-0 h-48 sm:h-64 flex flex-col justify-between text-xs text-gray-600 z-10">
+                <span className="whitespace-nowrap text-gray-800 font-medium bg-white px-2 py-1 rounded">฿60,000</span>
+                <span className="whitespace-nowrap text-gray-800 font-medium bg-white px-2 py-1 rounded">฿45,000</span>
+                <span className="whitespace-nowrap text-gray-800 font-medium bg-white px-2 py-1 rounded">฿30,000</span>
+                <span className="whitespace-nowrap text-gray-800 font-medium bg-white px-2 py-1 rounded">฿15,000</span>
+                <span className="whitespace-nowrap text-gray-800 font-medium bg-white px-2 py-1 rounded">฿0</span>
               </div>
               
-              {/* Chart bars */}
-              <div className="flex items-end justify-between w-full pl-24">
+              {/* Chart bars with proper spacing */}
+              <div className="flex items-end justify-between h-48 sm:h-64 px-2 sm:px-4 pb-4 border-b border-l border-gray-300 ml-20 sm:ml-24">
                 {monthlyData.map((data, index) => (
                   <div key={index} className="flex items-end space-x-1">
                     {/* Income Bar */}
@@ -545,23 +551,24 @@ export default function IncomeExpensesPage() {
             </div>
             
             {/* X-axis month labels */}
-            <div className="flex justify-between px-4 mt-2">
+            <div className="flex justify-between px-2 sm:px-4 mt-2 ml-20 sm:ml-24">
               {monthlyData.map((data, index) => (
-                <div key={index} className="text-xs text-gray-600 text-center w-12">
-                  {data.month}
+                <div key={index} className="text-xs text-gray-600 text-center w-8 sm:w-12">
+                  <span className="hidden sm:inline">{data.month}</span>
+                  <span className="sm:hidden">{data.month.split(' ')[0]}</span>
                 </div>
               ))}
             </div>
             
             {/* Legend */}
-            <div className="flex items-center justify-center space-x-6 mt-4">
+            <div className="flex items-center justify-center space-x-4 sm:space-x-6 mt-4">
               <div className="flex items-center space-x-2">
-                <div className="w-4 h-4 bg-green-500 rounded"></div>
-                <span className="text-sm text-gray-700">รายรับ</span>
+                <div className="w-3 h-3 sm:w-4 sm:h-4 bg-green-500 rounded flex-shrink-0"></div>
+                <span className="text-xs sm:text-sm text-gray-700">รายรับ</span>
               </div>
               <div className="flex items-center space-x-2">
-                <div className="w-4 h-4 bg-red-500 rounded"></div>
-                <span className="text-sm text-gray-700">รายจ่าย</span>
+                <div className="w-3 h-3 sm:w-4 sm:h-4 bg-red-500 rounded flex-shrink-0"></div>
+                <span className="text-xs sm:text-sm text-gray-700">รายจ่าย</span>
               </div>
             </div>
           </div>
@@ -569,12 +576,12 @@ export default function IncomeExpensesPage() {
       </div>
 
       {/* Category Breakdown Cards */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
         {/* Income Categories */}
         <div className="card">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
-            <ArrowTrendingUpIcon className="w-5 h-5 text-green-600" />
-            <span>รายรับตามประเภท</span>
+          <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4 flex items-center space-x-2">
+            <ArrowTrendingUpIcon className="w-4 h-4 sm:w-5 sm:h-5 text-green-600 flex-shrink-0" />
+            <span className="text-sm sm:text-base">รายรับตามประเภท</span>
           </h3>
           {incomeSummary.length > 0 ? (
             <div className="space-y-3">
@@ -608,9 +615,9 @@ export default function IncomeExpensesPage() {
 
         {/* Expense Categories */}
         <div className="card">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
-            <ArrowTrendingDownIcon className="w-5 h-5 text-red-600" />
-            <span>รายจ่ายตามประเภท</span>
+          <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4 flex items-center space-x-2">
+            <ArrowTrendingDownIcon className="w-4 h-4 sm:w-5 sm:h-5 text-red-600 flex-shrink-0" />
+            <span className="text-sm sm:text-base">รายจ่ายตามประเภท</span>
           </h3>
           {expenseSummary.length > 0 ? (
             <div className="space-y-3">
@@ -645,19 +652,19 @@ export default function IncomeExpensesPage() {
 
       {/* Filters */}
       <div className="card">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-gray-900">ตัวกรองข้อมูล</h2>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0 mb-4">
+          <h2 className="text-base sm:text-lg font-semibold text-gray-900">ตัวกรองข้อมูล</h2>
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className="flex items-center space-x-2 px-3 py-2 text-gray-600 hover:text-gray-900 transition-colors"
+            className="flex items-center justify-center sm:justify-start space-x-2 px-3 py-2 text-gray-600 hover:text-gray-900 transition-colors text-sm sm:text-base"
           >
-            <FunnelIcon className="w-5 h-5" />
+            <FunnelIcon className="w-4 h-4 sm:w-5 sm:h-5" />
             <span>{showFilters ? 'ซ่อนตัวกรอง' : 'แสดงตัวกรอง'}</span>
           </button>
         </div>
 
         {showFilters && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4 bg-gray-50 rounded-lg">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 p-3 sm:p-4 bg-gray-50 rounded-lg">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">ประเภท</label>
               <select
@@ -750,10 +757,10 @@ export default function IncomeExpensesPage() {
 
       {/* Add Transaction Modal */}
       {showAddForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-8 w-full max-w-lg shadow-2xl">
-            <div className="flex items-center justify-between mb-8">
-              <h2 className="text-2xl font-bold text-gray-900">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-4 sm:p-8 w-full max-w-lg shadow-2xl">
+            <div className="flex items-center justify-between mb-6 sm:mb-8">
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
                 {editingTransaction ? 'แก้ไขรายการ' : 'เพิ่มรายการใหม่'}
               </h2>
               <button
@@ -775,7 +782,7 @@ export default function IncomeExpensesPage() {
               </button>
             </div>
             
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               {/* Transaction Type Selection */}
               <div className="grid grid-cols-2 gap-4">
                 <button
@@ -807,13 +814,13 @@ export default function IncomeExpensesPage() {
                 </button>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">หมวดหมู่</label>
                   <select
                     value={newTransaction.category}
                     onChange={(e) => setNewTransaction(prev => ({ ...prev, category: e.target.value }))}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-sm sm:text-base"
                   >
                     <option value="">เลือกหมวดหมู่</option>
                     {newTransaction.type === 'income' ? (
@@ -836,7 +843,7 @@ export default function IncomeExpensesPage() {
                       type="number"
                       value={newTransaction.amount}
                       onChange={(e) => setNewTransaction(prev => ({ ...prev, amount: e.target.value }))}
-                      className="w-full pl-8 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                      className="w-full pl-8 pr-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-sm sm:text-base"
                       placeholder="0"
                     />
                   </div>
@@ -854,14 +861,14 @@ export default function IncomeExpensesPage() {
                 />
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">วันที่</label>
                   <input
                     type="date"
                     value={newTransaction.date}
                     onChange={(e) => setNewTransaction(prev => ({ ...prev, date: e.target.value }))}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-sm sm:text-base"
                   />
                 </div>
                 
@@ -871,14 +878,14 @@ export default function IncomeExpensesPage() {
                     id="recurring"
                     checked={newTransaction.isRecurring}
                     onChange={(e) => setNewTransaction(prev => ({ ...prev, isRecurring: e.target.checked }))}
-                    className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                    className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                   />
                   <label htmlFor="recurring" className="text-sm text-gray-700 font-medium">รายการประจำ</label>
                 </div>
               </div>
             </div>
             
-            <div className="flex justify-end space-x-4 mt-8 pt-6 border-t border-gray-200">
+            <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-4 mt-6 sm:mt-8 pt-4 sm:pt-6 border-t border-gray-200">
               <button
                 onClick={() => {
                   setShowAddForm(false)
@@ -913,9 +920,9 @@ export default function IncomeExpensesPage() {
 
       {/* Transactions List */}
       <div className="card">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-gray-900">รายการทั้งหมด</h2>
-          <p className="text-sm text-gray-600">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0 mb-4">
+          <h2 className="text-base sm:text-lg font-semibold text-gray-900">รายการทั้งหมด</h2>
+          <p className="text-xs sm:text-sm text-gray-600 text-center sm:text-left">
             แสดง {filteredTransactions.length} รายการจากทั้งหมด {transactions.length} รายการ
           </p>
         </div>
@@ -924,22 +931,22 @@ export default function IncomeExpensesPage() {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   ประเภท
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="hidden sm:table-cell px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   หมวดหมู่
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   คำอธิบาย
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   จำนวนเงิน
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="hidden sm:table-cell px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   วันที่
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   การดำเนินการ
                 </th>
               </tr>
@@ -947,8 +954,8 @@ export default function IncomeExpensesPage() {
             <tbody className="bg-white divide-y divide-gray-200">
               {currentTransactions.map((transaction) => (
                 <tr key={transaction.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                  <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
+                    <span className={`inline-flex items-center px-2 py-0.5 sm:px-2.5 rounded-full text-xs font-medium ${
                       transaction.type === 'income' 
                         ? 'bg-green-100 text-green-800' 
                         : 'bg-red-100 text-red-800'
@@ -956,39 +963,39 @@ export default function IncomeExpensesPage() {
                       {transaction.type === 'income' ? 'รายรับ' : 'รายจ่าย'}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td className="hidden sm:table-cell px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {transaction.category}
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-900">
-                    <div className="flex items-center space-x-2">
-                      <span>{transaction.description}</span>
+                  <td className="px-3 sm:px-6 py-4 text-sm text-gray-900">
+                    <div className="flex flex-col sm:flex-row sm:items-center space-y-1 sm:space-y-0 sm:space-x-2">
+                      <span className="text-xs sm:text-sm">{transaction.description}</span>
                       {transaction.isRecurring && (
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                        <span className="inline-flex items-center px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                           ประจำ
                         </span>
                       )}
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                  <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <span className={transaction.type === 'income' ? 'text-green-600' : 'text-red-600'}>
                       {transaction.type === 'income' ? '+' : '-'}฿{transaction.amount.toLocaleString()}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td className="hidden sm:table-cell px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {new Date(transaction.date).toLocaleDateString('th-TH')}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <div className="flex items-center space-x-2">
+                  <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <div className="flex items-center space-x-1 sm:space-x-2">
                       <button
                         onClick={() => handleEditTransaction(transaction)}
-                        className="text-blue-600 hover:text-blue-900 transition-colors"
+                        className="text-blue-600 hover:text-blue-900 transition-colors p-1"
                         title="แก้ไข"
                       >
                         <PencilIcon className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => handleDeleteTransaction(transaction.id)}
-                        className="text-red-600 hover:text-red-900 transition-colors"
+                        className="text-red-600 hover:text-red-900 transition-colors p-1"
                         title="ลบ"
                       >
                         <TrashIcon className="w-4 h-4" />
@@ -1003,11 +1010,11 @@ export default function IncomeExpensesPage() {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-between mt-6">
-            <div className="text-sm text-gray-700">
+          <div className="flex flex-col sm:flex-row items-center justify-between mt-6 space-y-3 sm:space-y-0">
+            <div className="text-sm text-gray-700 text-center sm:text-left">
               แสดง {startIndex + 1} ถึง {Math.min(endIndex, filteredTransactions.length)} จาก {filteredTransactions.length} รายการ
             </div>
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-1 sm:space-x-2">
               <button
                 onClick={goToPreviousPage}
                 disabled={currentPage === 1}
@@ -1029,7 +1036,7 @@ export default function IncomeExpensesPage() {
                       <button
                         key={page}
                         onClick={() => goToPage(page)}
-                        className={`px-3 py-2 text-sm font-medium rounded-lg ${
+                        className={`px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium rounded-lg ${
                           page === currentPage
                             ? 'bg-primary-600 text-white'
                             : 'text-gray-500 bg-white border border-gray-300 hover:bg-gray-50'
@@ -1042,7 +1049,7 @@ export default function IncomeExpensesPage() {
                     page === currentPage - 2 ||
                     page === currentPage + 2
                   ) {
-                    return <span key={page} className="px-2 text-gray-400">...</span>
+                    return <span key={page} className="px-1 sm:px-2 text-gray-400 text-xs sm:text-sm">...</span>
                   }
                   return null
                 })}
@@ -1076,7 +1083,7 @@ export default function IncomeExpensesPage() {
       {/* Budget Settings Modal */}
       {showBudgetSettings && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-6xl max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-lg p-4 sm:p-6 w-full max-w-6xl max-h-[90vh] overflow-y-auto mx-4 sm:mx-0">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold text-gray-900">ตั้งค่าค่าใช้จ่ายรายเดือน</h2>
               <div className="flex items-center space-x-3">
@@ -1096,7 +1103,7 @@ export default function IncomeExpensesPage() {
               </div>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mb-6">
               {monthlyBudgets.map((budget, index) => (
                 <div key={budget.category} className="border rounded-lg p-4 relative">
                   <div className="absolute top-2 right-2 flex items-center space-x-1">
@@ -1163,7 +1170,7 @@ export default function IncomeExpensesPage() {
       {/* Add/Edit Budget Modal */}
       {showAddBudget && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+          <div className="bg-white rounded-lg p-4 sm:p-6 w-full max-w-md mx-4 sm:mx-0">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold text-gray-900">
                 {editingBudget ? 'แก้ไขหมวดหมู่' : 'เพิ่มหมวดหมู่ใหม่'}
