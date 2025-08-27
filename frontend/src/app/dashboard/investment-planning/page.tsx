@@ -1,15 +1,174 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { 
   CalendarIcon,
   ChartBarIcon,
   ExclamationTriangleIcon,
   CheckCircleIcon,
   LightBulbIcon,
-  CalculatorIcon
+  CalculatorIcon,
+  PlusIcon,
+  PencilIcon,
+  TrashIcon,
+  XMarkIcon
 } from '@heroicons/react/24/outline'
+import { DatePicker } from 'antd'
+import dayjs from 'dayjs'
 
 export default function InvestmentPlanningPage() {
+  const [mounted, setMounted] = useState(false)
+  const [showAddForm, setShowAddForm] = useState(false)
+  const [editingGoal, setEditingGoal] = useState<any>(null)
+  const [newGoal, setNewGoal] = useState({
+    name: '',
+    target: '',
+    deadline: null as any,
+    type: 'medium',
+    monthlyInvestment: '',
+    priority: 'medium',
+    description: ''
+  })
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  // Mock data for financial goals
+  const goals = [
+    { 
+      name: 'บ้านหลังแรก', 
+      target: 2000000, 
+      current: 800000, 
+      deadline: '2026', 
+      type: 'long',
+      monthlyInvestment: 25000,
+      priority: 'high'
+    },
+    { 
+      name: 'รถยนต์', 
+      target: 800000, 
+      current: 300000, 
+      deadline: '2024', 
+      type: 'short',
+      monthlyInvestment: 15000,
+      priority: 'medium'
+    },
+    { 
+      name: 'เงินออมฉุกเฉิน', 
+      target: 300000, 
+      current: 250000, 
+      deadline: '2024', 
+      type: 'short',
+      monthlyInvestment: 5000,
+      priority: 'high'
+    },
+    { 
+      name: 'การศึกษาบุตร', 
+      target: 1500000, 
+      current: 200000, 
+      deadline: '2030', 
+      type: 'long',
+      monthlyInvestment: 20000,
+      priority: 'medium'
+    },
+    { 
+      name: 'เกษียณอายุ', 
+      target: 10000000, 
+      current: 1500000, 
+      deadline: '2045', 
+      type: 'very-long',
+      monthlyInvestment: 30000,
+      priority: 'low'
+    }
+  ]
+
+  const totalMonthlyInvestment = goals.reduce((sum, goal) => sum + goal.monthlyInvestment, 0)
+
+  // ฟังก์ชันสำหรับจัดการเป้าหมาย
+  const handleAddGoal = () => {
+    if (!newGoal.name || !newGoal.target || !newGoal.deadline || !newGoal.monthlyInvestment) {
+      alert('กรุณากรอกข้อมูลให้ครบถ้วน')
+      return
+    }
+
+    const goal = {
+      name: newGoal.name,
+      target: parseFloat(newGoal.target),
+      current: 0,
+      deadline: newGoal.deadline ? dayjs(newGoal.deadline).format('YYYY') : '',
+      type: newGoal.type,
+      monthlyInvestment: parseFloat(newGoal.monthlyInvestment),
+      priority: newGoal.priority,
+      description: newGoal.description
+    }
+
+    goals.push(goal)
+    setNewGoal({
+      name: '',
+      target: '',
+      deadline: null,
+      type: 'medium',
+      monthlyInvestment: '',
+      priority: 'medium',
+      description: ''
+    })
+    setShowAddForm(false)
+  }
+
+  const handleEditGoal = () => {
+    if (!editingGoal) return
+
+    if (!newGoal.name || !newGoal.target || !newGoal.deadline || !newGoal.monthlyInvestment) {
+      alert('กรุณากรอกข้อมูลให้ครบถ้วน')
+      return
+    }
+
+    const goalIndex = goals.findIndex(g => g.name === editingGoal.name)
+    if (goalIndex !== -1) {
+      goals[goalIndex] = {
+        ...editingGoal,
+        name: newGoal.name,
+        target: parseFloat(newGoal.target),
+        deadline: newGoal.deadline ? dayjs(newGoal.deadline).format('YYYY') : '',
+        type: newGoal.type,
+        monthlyInvestment: parseFloat(newGoal.monthlyInvestment),
+        priority: newGoal.priority,
+        description: newGoal.description
+      }
+    }
+
+    setEditingGoal(null)
+    setNewGoal({
+      name: '',
+      target: '',
+      deadline: null,
+      type: 'medium',
+      monthlyInvestment: '',
+      priority: 'medium',
+      description: ''
+    })
+    setShowAddForm(false)
+  }
+
+  const handleDeleteGoal = (goalName: string) => {
+    if (confirm('คุณต้องการลบเป้าหมายนี้หรือไม่?')) {
+      const goalIndex = goals.findIndex(g => g.name === goalName)
+      if (goalIndex !== -1) {
+        goals.splice(goalIndex, 1)
+      }
+    }
+  }
+
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'high': return 'bg-red-100 text-red-800'
+      case 'medium': return 'bg-yellow-100 text-yellow-800'
+      case 'low': return 'bg-green-100 text-green-800'
+      default: return 'bg-gray-100 text-gray-800'
+    }
+  }
+
   // Mock data
   const monthlyPlan = {
     totalIncome: 50000,
@@ -140,6 +299,113 @@ export default function InvestmentPlanningPage() {
           </div>
         </div>
       </div> */}
+
+      {/* Monthly Investment Plan */}
+      <div className="card">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0 mb-6">
+          <h3 className="text-lg font-semibold text-gray-900">แผนการลงทุนรายเดือน</h3>
+          <button
+            onClick={() => setShowAddForm(true)}
+            className="w-full sm:w-auto px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors flex items-center justify-center space-x-2 text-sm"
+          >
+            <PlusIcon className="w-4 h-4" />
+            <span>เพิ่มแผนการลงทุน</span>
+          </button>
+        </div>
+        
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Investment Summary */}
+          <div className="lg:col-span-2">
+            <h4 className="font-medium text-gray-700 mb-4 text-center lg:text-left">สรุปการลงทุนรายเดือน</h4>
+            <div className="space-y-3">
+              {goals.map((goal, index) => (
+                <div key={index} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center space-x-3">
+                      <div className={`w-3 h-3 rounded-full ${getPriorityColor(goal.priority).replace('bg-', 'bg-').replace('text-', 'bg-')}`}></div>
+                      <span className="font-medium text-gray-900">{goal.name}</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <span className="text-lg font-bold text-blue-600">฿{goal.monthlyInvestment.toLocaleString()}</span>
+                      <button
+                        onClick={() => {
+                          setEditingGoal(goal)
+                          setNewGoal({
+                            name: goal.name,
+                            target: goal.target.toString(),
+                            deadline: goal.deadline ? dayjs(goal.deadline, 'YYYY') : null,
+                            type: goal.type,
+                            monthlyInvestment: goal.monthlyInvestment.toString(),
+                            priority: goal.priority,
+                            description: ''
+                          })
+                          setShowAddForm(true)
+                        }}
+                        className="p-1 text-gray-400 hover:text-blue-600"
+                      >
+                        <PencilIcon className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteGoal(goal.name)}
+                        className="p-1 text-gray-400 hover:text-red-600"
+                      >
+                        <TrashIcon className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                  <div className="flex justify-between text-sm text-gray-600">
+                    <span>เป้าหมาย: ฿{goal.target.toLocaleString()}</span>
+                    <span>เก็บแล้ว: ฿{goal.current.toLocaleString()}</span>
+                    <span>ความคืบหน้า: {((goal.current / goal.target) * 100).toFixed(1)}%</span>
+                  </div>
+                </div>
+              ))}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="flex justify-between items-center">
+                  <span className="font-bold text-blue-900">รวมการลงทุนรายเดือน</span>
+                  <span className="text-2xl font-bold text-blue-600">฿{totalMonthlyInvestment.toLocaleString()}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          {/* Investment Tips */}
+          <div>
+            <h4 className="font-medium text-gray-700 mb-4">คำแนะนำการลงทุน</h4>
+            <div className="space-y-3">
+              <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                <div className="flex items-start space-x-3">
+                  <ExclamationTriangleIcon className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="text-sm font-medium text-blue-900">การจัดลำดับความสำคัญ</p>
+                    <p className="text-sm text-blue-700">เน้นเป้าหมายที่มีความสำคัญสูงก่อน เช่น เงินออมฉุกเฉิน</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="p-3 bg-green-50 rounded-lg border border-green-200">
+                <div className="flex items-start space-x-3">
+                  <CheckCircleIcon className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="text-sm font-medium text-green-900">การปรับแผน</p>
+                    <p className="text-sm text-green-700">ปรับแผนทุก 6 เดือนตามสถานการณ์การเงินที่เปลี่ยนแปลง</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+                <div className="flex items-start space-x-3">
+                  <ChartBarIcon className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="text-sm font-medium text-yellow-900">การกระจายความเสี่ยง</p>
+                    <p className="text-sm text-yellow-700">กระจายการลงทุนในหลายเป้าหมายเพื่อลดความเสี่ยง</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Risk Profile Assessment */}
       <div className="card">
@@ -303,6 +569,146 @@ export default function InvestmentPlanningPage() {
           </div>
         </div>
       </div>
+
+      {/* Add/Edit Goal Modal */}
+      {showAddForm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold text-gray-900">
+                {editingGoal ? 'แก้ไขแผนการลงทุน' : 'เพิ่มแผนการลงทุนใหม่'}
+              </h2>
+              <button
+                onClick={() => {
+                  setShowAddForm(false)
+                  setEditingGoal(null)
+                  setNewGoal({
+                    name: '',
+                    target: '',
+                    deadline: null,
+                    type: 'medium',
+                    monthlyInvestment: '',
+                    priority: 'medium',
+                    description: ''
+                  })
+                }}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <XMarkIcon className="w-6 h-6" />
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">ชื่อเป้าหมาย</label>
+                <input
+                  type="text"
+                  value={newGoal.name}
+                  onChange={(e) => setNewGoal(prev => ({ ...prev, name: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  placeholder="เช่น ซื้อบ้าน, รถยนต์ใหม่"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">จำนวนเงินเป้าหมาย (บาท)</label>
+                <input
+                  type="number"
+                  value={newGoal.target}
+                  onChange={(e) => setNewGoal(prev => ({ ...prev, target: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  placeholder="0"
+                  min="0"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">วันที่เป้าหมาย</label>
+                <DatePicker
+                  value={newGoal.deadline}
+                  onChange={(date) => setNewGoal(prev => ({ ...prev, deadline: date }))}
+                  className="w-full"
+                  placeholder="เลือกปีเป้าหมาย"
+                  picker="year"
+                  format="YYYY"
+                  allowClear
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">ระยะเวลา</label>
+                <select
+                  value={newGoal.type}
+                  onChange={(e) => setNewGoal(prev => ({ ...prev, type: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                >
+                  <option value="short">ระยะสั้น (1-2 ปี)</option>
+                  <option value="medium">ระยะกลาง (3-5 ปี)</option>
+                  <option value="long">ระยะยาว (5+ ปี)</option>
+                  <option value="very-long">ระยะยาวมาก (10+ ปี)</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">ลงทุนรายเดือน (บาท)</label>
+                <input
+                  type="number"
+                  value={newGoal.monthlyInvestment}
+                  onChange={(e) => setNewGoal(prev => ({ ...prev, monthlyInvestment: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  placeholder="0"
+                  min="0"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">ความสำคัญ</label>
+                <select
+                  value={newGoal.priority}
+                  onChange={(e) => setNewGoal(prev => ({ ...prev, priority: e.target.value as 'low' | 'medium' | 'high' }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                >
+                  <option value="low">ต่ำ</option>
+                  <option value="medium">ปานกลาง</option>
+                  <option value="high">สูง</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">รายละเอียด</label>
+                <textarea
+                  value={newGoal.description}
+                  onChange={(e) => setNewGoal(prev => ({ ...prev, description: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  placeholder="อธิบายรายละเอียดของเป้าหมาย"
+                  rows={3}
+                />
+              </div>
+            </div>
+            
+            <div className="flex justify-end space-x-3 mt-6">
+              <button
+                onClick={() => {
+                  setShowAddForm(false)
+                  setEditingGoal(null)
+                  setNewGoal({
+                    name: '',
+                    target: '',
+                    deadline: null,
+                    type: 'medium',
+                    monthlyInvestment: '',
+                    priority: 'medium',
+                    description: ''
+                  })
+                }}
+                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+              >
+                ยกเลิก
+              </button>
+              <button
+                onClick={editingGoal ? handleEditGoal : handleAddGoal}
+                className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
+              >
+                {editingGoal ? 'อัปเดต' : 'เพิ่ม'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
