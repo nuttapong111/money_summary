@@ -11,6 +11,7 @@ import {
   PlusIcon,
   XMarkIcon
 } from '@heroicons/react/24/outline'
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts'
 
 interface Investment {
   name: string
@@ -28,6 +29,12 @@ export default function InvestmentPortfolioPage() {
     value: '',
     type: 'stock',
     risk: 'medium'
+  })
+  const [tooltip, setTooltip] = useState({
+    show: false,
+    text: '',
+    x: 0,
+    y: 0
   })
 
   // Mock data
@@ -125,11 +132,41 @@ export default function InvestmentPortfolioPage() {
     setShowAddForm(false)
   }
 
+  const handleMouseEnter = (e: React.MouseEvent, asset: any) => {
+    const rect = e.currentTarget.getBoundingClientRect()
+    
+    setTooltip({
+      show: true,
+      text: `${asset.type}: ${asset.percentage}% (฿${asset.value?.toLocaleString()})`,
+      x: rect.left + rect.width / 2,
+      y: rect.top - 50
+    })
+  }
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (tooltip.show) {
+      setTooltip(prev => ({
+        ...prev,
+        x: e.clientX,
+        y: e.clientY - 50
+      }))
+    }
+  }
+
+  const handleMouseLeave = () => {
+    setTooltip({
+      show: false,
+      text: '',
+      x: 0,
+      y: 0
+    })
+  }
+
   // สร้าง Pie Chart SVG แบบ Modern
   const createPieChart = () => {
-    const radius = 80
-    const centerX = 100
-    const centerY = 100
+    const radius = 200 // เพิ่มขนาด radius จาก 80 เป็น 200
+    const centerX = 250 // ปรับ centerX จาก 100 เป็น 250 (ครึ่งหนึ่งของ 500)
+    const centerY = 250 // ปรับ centerY จาก 100 เป็น 250 (ครึ่งหนึ่งของ 500)
     let currentAngle = 0
 
     return assetAllocation.map((asset, index) => {
@@ -154,177 +191,144 @@ export default function InvestmentPortfolioPage() {
         'Z'
       ].join(' ')
 
-      // สร้าง shadow effect และ gradient
+      // แปลงสีจาก Tailwind เป็น hex
+      const getColorHex = (colorClass: string) => {
+        switch (colorClass) {
+          case 'bg-blue-500': return '#3b82f6'
+          case 'bg-green-500': return '#10b981'
+          case 'bg-yellow-500': return '#f59e0b'
+          case 'bg-purple-500': return '#8b5cf6'
+          case 'bg-red-500': return '#ef4444'
+          default: return '#6b7280'
+        }
+      }
+
       return (
         <g key={index}>
           {/* Shadow */}
           <path
             d={pathData}
             fill="rgba(0,0,0,0.1)"
-            transform="translate(2,2)"
+            transform="translate(4,4)" // เพิ่ม shadow offset จาก 2 เป็น 4
           />
           {/* Main slice */}
           <path
             d={pathData}
-            fill={asset.color.replace('bg-', '').replace('-500', '')}
+            fill={getColorHex(asset.color)}
             className="hover:opacity-80 transition-all duration-300 cursor-pointer drop-shadow-lg"
             stroke="white"
-            strokeWidth="2"
+            strokeWidth="4"
+            onMouseEnter={(e) => handleMouseEnter(e, asset)}
+            onMouseLeave={handleMouseLeave}
           />
         </g>
       )
     })
   }
 
-  // สร้าง Line Chart SVG แบบ Modern
+  // สร้าง Line Chart ด้วย Recharts
   const createLineChart = () => {
-    const width = 600
-    const height = 200
-    const padding = 40
-    const chartWidth = width - 2 * padding
-    const chartHeight = height - 2 * padding
-
-    const maxValue = Math.max(...portfolioHistory.map(item => item.value))
-    const minValue = Math.min(...portfolioHistory.map(item => item.value))
-    const valueRange = maxValue - minValue
-
-    const points = portfolioHistory.map((item, index) => {
-      const x = padding + (index / (portfolioHistory.length - 1)) * chartWidth
-      const y = padding + ((maxValue - item.value) / valueRange) * chartHeight
-      return { x, y, value: item.value, month: item.month }
-    })
-
-    const pathData = points.map((point, index) => {
-      if (index === 0) return `M ${point.x} ${point.y}`
-      return `L ${point.x} ${point.y}`
-    }).join(' ')
-
-    // สร้าง gradient สำหรับ line
-    const gradientId = "lineGradient"
-
     return (
-      <svg width={width} height={height} className="w-full h-full">
-        {/* Definitions for gradients */}
-        <defs>
-          <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.8"/>
-            <stop offset="100%" stopColor="#1d4ed8" stopOpacity="0.8"/>
-          </linearGradient>
-        </defs>
-
-        {/* Background grid */}
-        {[0, 1, 2, 3, 4].map(i => (
-          <line
-            key={i}
-            x1={padding}
-            y1={padding + (i / 4) * chartHeight}
-            x2={width - padding}
-            y2={padding + (i / 4) * chartHeight}
-            stroke="#f3f4f6"
-            strokeWidth="1"
-            strokeDasharray="5,5"
+      <ResponsiveContainer width="100%" height="100%">
+        <AreaChart
+          data={portfolioHistory}
+          margin={{
+            top: 20,
+            right: 30,
+            left: 20,
+            bottom: 5,
+          }}
+        >
+          <defs>
+            <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8}/>
+              <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.1}/>
+            </linearGradient>
+          </defs>
+          <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
+          <XAxis 
+            dataKey="month" 
+            axisLine={false}
+            tickLine={false}
+            tick={{ fontSize: 12, fill: '#6b7280' }}
           />
-        ))}
-        
-        {/* Area fill under line */}
-        <path
-          d={`${pathData} L ${points[points.length - 1].x} ${height - padding} L ${points[0].x} ${height - padding} Z`}
-          fill="url(#lineGradient)"
-          opacity="0.1"
-        />
-        
-        {/* Main line chart */}
-        <path
-          d={pathData}
-          stroke="url(#lineGradient)"
-          strokeWidth="3"
-          fill="none"
-          className="drop-shadow-lg"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        
-        {/* Data points with modern design */}
-        {points.map((point, index) => (
-          <g key={index}>
-            {/* Point shadow */}
-            <circle
-              cx={point.x}
-              cy={point.y}
-              r="6"
-              fill="rgba(0,0,0,0.1)"
-              transform="translate(1,1)"
-            />
-            {/* Main point */}
-            <circle
-              cx={point.x}
-              cy={point.y}
-              r="4"
-              fill="white"
-              stroke="#3b82f6"
-              strokeWidth="2"
-              className="hover:r-6 transition-all duration-200 cursor-pointer drop-shadow-md"
-            />
-          </g>
-        ))}
-        
-        {/* Y-axis labels with better positioning */}
-        {[0, 1, 2, 3, 4].map(i => {
-          const value = Math.round(minValue + (i / 4) * valueRange)
-          const y = padding + (i / 4) * chartHeight
-          return (
-            <g key={i}>
-              <line
-                x1={padding - 5}
-                y1={y}
-                x2={padding}
-                y2={y}
-                stroke="#d1d5db"
-                strokeWidth="1"
-              />
-              <text
-                x={padding - 10}
-                y={y + 4}
-                textAnchor="end"
-                fontSize="11"
-                fill="#6b7280"
-                className="font-medium"
-              >
-                ฿{value.toLocaleString()}
-              </text>
-            </g>
-          )
-        })}
-        
-        {/* X-axis labels with better positioning */}
-        {points.map((point, index) => (
-          <g key={index}>
-            <line
-              x1={point.x}
-              y1={height - padding}
-              x2={point.x}
-              y2={height - padding + 5}
-              stroke="#d1d5db"
-              strokeWidth="1"
-            />
-            <text
-              x={point.x}
-              y={height - padding + 20}
-              textAnchor="middle"
-              fontSize="11"
-              fill="#6b7280"
-              className="font-medium"
-            >
-              {point.month}
-            </text>
-          </g>
-        ))}
-      </svg>
+          <YAxis 
+            axisLine={false}
+            tickLine={false}
+            tick={{ fontSize: 12, fill: '#6b7280' }}
+            tickFormatter={(value) => `฿${value.toLocaleString()}`}
+          />
+          <Tooltip 
+            formatter={(value: any) => [`฿${value.toLocaleString()}`, 'มูลค่า']}
+            labelFormatter={(label) => `เดือน: ${label}`}
+            contentStyle={{
+              backgroundColor: 'rgba(255, 255, 255, 0.95)',
+              border: '1px solid #e5e7eb',
+              borderRadius: '8px',
+              boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+            }}
+          />
+          <Area
+            type="monotone"
+            dataKey="value"
+            stroke="#3b82f6"
+            strokeWidth={3}
+            fill="url(#colorValue)"
+            dot={{
+              fill: '#ffffff',
+              stroke: '#3b82f6',
+              strokeWidth: 3,
+              r: 6,
+            }}
+            activeDot={{
+              r: 8,
+              stroke: '#3b82f6',
+              strokeWidth: 3,
+              fill: '#ffffff',
+            }}
+          />
+        </AreaChart>
+      </ResponsiveContainer>
     )
   }
 
   return (
     <div className="space-y-6">
+      {/* CSS for tooltips */}
+      <style>{`
+        .tooltip {
+          position: fixed;
+          background: rgba(0, 0, 0, 0.9);
+          color: white;
+          padding: 8px 12px;
+          border-radius: 6px;
+          font-size: 12px;
+          white-space: nowrap;
+          z-index: 1000;
+          pointer-events: none;
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+          opacity: 0;
+          transition: opacity 0.2s ease;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+          transform: translateX(-50%);
+        }
+        .tooltip.show {
+          opacity: 1;
+        }
+        .tooltip::after {
+          content: '';
+          position: absolute;
+          top: 100%;
+          left: 50%;
+          transform: translateX(-50%);
+          border: 5px solid transparent;
+          border-top-color: rgba(0, 0, 0, 0.9);
+        }
+        .pie-chart-container {
+          position: relative;
+        }
+      `}</style>
+
       {/* Header with Add Button */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
         <div>
@@ -377,7 +381,16 @@ export default function InvestmentPortfolioPage() {
             {assetAllocation.map((asset, index) => (
               <div key={index} className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
-                  <div className={`w-4 h-4 rounded-full ${asset.color}`}></div>
+                  <div 
+                    className="w-4 h-4 rounded-full" 
+                    style={{ 
+                      backgroundColor: asset.color === 'bg-blue-500' ? '#3b82f6' :
+                                  asset.color === 'bg-green-500' ? '#10b981' :
+                                  asset.color === 'bg-yellow-500' ? '#f59e0b' :
+                                  asset.color === 'bg-purple-500' ? '#8b5cf6' :
+                                  asset.color === 'bg-red-500' ? '#ef4444' : '#6b7280'
+                    }}
+                  ></div>
                   <span className="text-sm font-medium text-gray-700">{asset.type}</span>
                 </div>
                 <div className="text-right">
@@ -389,34 +402,31 @@ export default function InvestmentPortfolioPage() {
           </div>
         </div>
 
-        <div className="card">
+                <div className="card">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Asset Allocation Pie Chart</h3>
-          <div className="h-64 flex items-center justify-center">
-            <div className="relative">
+          <div className="h-[500px] flex items-center justify-center">
+            <div 
+              className="relative flex items-center justify-center w-full pie-chart-container"
+              onMouseMove={handleMouseMove}
+            >
               {/* Pie Chart SVG */}
-              <svg width="200" height="200" className="mx-auto">
+              <svg width="500" height="500" className="mx-auto">
                 {createPieChart()}
               </svg>
               
-              {/* Center text */}
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="text-center">
-                  <p className="text-lg font-bold text-gray-900">฿{portfolio.totalValue.toLocaleString()}</p>
-                  <p className="text-sm text-gray-600">มูลค่ารวม</p>
+              {/* Tooltip */}
+              {tooltip.show && (
+                <div 
+                  className="tooltip show"
+                  style={{
+                    left: tooltip.x,
+                    top: tooltip.y
+                  }}
+                >
+                  {tooltip.text}
                 </div>
-              </div>
+              )}
             </div>
-          </div>
-          
-          {/* Legend */}
-          <div className="mt-4 grid grid-cols-2 gap-2">
-            {assetAllocation.map((asset, index) => (
-              <div key={index} className="flex items-center space-x-2 text-sm">
-                <div className={`w-3 h-3 rounded-full ${asset.color}`}></div>
-                <span className="text-gray-700">{asset.type}</span>
-                <span className="text-gray-500">({asset.percentage}%)</span>
-              </div>
-            ))}
           </div>
         </div>
       </div>
@@ -480,11 +490,11 @@ export default function InvestmentPortfolioPage() {
       </div>
 
       {/* Portfolio History Chart */}
-      <div className="card">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">ประวัติมูลค่าพอร์ต</h3>
-        <div className="h-64 flex items-center justify-center">
-          {createLineChart()}
-        </div>
+              <div className="card">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">ประวัติมูลค่าพอร์ต</h3>
+          <div className="h-80 w-full overflow-hidden">
+            {createLineChart()}
+          </div>
         <div className="mt-4 grid grid-cols-6 gap-2 text-center">
           {portfolioHistory.map((item, index) => (
             <div key={index} className="text-sm">
