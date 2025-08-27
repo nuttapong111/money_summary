@@ -300,105 +300,127 @@ export default function InvestmentPlanningPage() {
         </div>
       </div> */}
 
-      {/* Monthly Investment Plan */}
+      {/* Financial Planning Strategies */}
       <div className="card">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0 mb-6">
-          <h3 className="text-lg font-semibold text-gray-900">แผนการลงทุนรายเดือน</h3>
-          <button
-            onClick={() => setShowAddForm(true)}
-            className="w-full sm:w-auto px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors flex items-center justify-center space-x-2 text-sm"
-          >
-            <PlusIcon className="w-4 h-4" />
-            <span>เพิ่มแผนการลงทุน</span>
-          </button>
+          <h3 className="text-lg font-semibold text-gray-900">แผนการเงินรายเดือน</h3>
+          <div className="flex space-x-2">
+            <button
+              onClick={() => setShowAddForm(true)}
+              className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors flex items-center space-x-2 text-sm"
+            >
+              <PlusIcon className="w-4 h-4" />
+              <span>ปรับแต่งแผน</span>
+            </button>
+          </div>
         </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Investment Summary */}
-          <div className="lg:col-span-2">
-            <h4 className="font-medium text-gray-700 mb-4 text-center lg:text-left">สรุปการลงทุนรายเดือน</h4>
+          {/* Strategy Selection */}
+          <div>
+            <h4 className="font-medium text-gray-700 mb-4">เลือกแผนการเงิน</h4>
             <div className="space-y-3">
-              {goals.map((goal, index) => (
-                <div key={index} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center space-x-3">
-                      <div className={`w-3 h-3 rounded-full ${getPriorityColor(goal.priority).replace('bg-', 'bg-').replace('text-', 'bg-')}`}></div>
-                      <span className="font-medium text-gray-900">{goal.name}</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <span className="text-lg font-bold text-blue-600">฿{goal.monthlyInvestment.toLocaleString()}</span>
-                      <button
-                        onClick={() => {
-                          setEditingGoal(goal)
-                          setNewGoal({
-                            name: goal.name,
-                            target: goal.target.toString(),
-                            deadline: goal.deadline ? dayjs(goal.deadline, 'YYYY') : null,
-                            type: goal.type,
-                            monthlyInvestment: goal.monthlyInvestment.toString(),
-                            priority: goal.priority,
-                            description: ''
-                          })
-                          setShowAddForm(true)
-                        }}
-                        className="p-1 text-gray-400 hover:text-blue-600"
-                      >
-                        <PencilIcon className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteGoal(goal.name)}
-                        className="p-1 text-gray-400 hover:text-red-600"
-                      >
-                        <TrashIcon className="w-4 h-4" />
-                      </button>
-                    </div>
+              <div className="p-4 bg-blue-50 rounded-lg border border-blue-200 cursor-pointer hover:bg-blue-100 transition-colors">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h5 className="font-semibold text-blue-900">50/30/20 Rule</h5>
+                    <p className="text-sm text-blue-700">แผนการเงินแบบดั้งเดิม</p>
                   </div>
-                  <div className="flex justify-between text-sm text-gray-600">
-                    <span>เป้าหมาย: ฿{goal.target.toLocaleString()}</span>
-                    <span>เก็บแล้ว: ฿{goal.current.toLocaleString()}</span>
-                    <span>ความคืบหน้า: {((goal.current / goal.target) * 100).toFixed(1)}%</span>
+                  <div className="text-right">
+                    <div className="text-xs text-blue-600">50% 30% 20%</div>
                   </div>
                 </div>
-              ))}
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <div className="flex justify-between items-center">
-                  <span className="font-bold text-blue-900">รวมการลงทุนรายเดือน</span>
-                  <span className="text-2xl font-bold text-blue-600">฿{totalMonthlyInvestment.toLocaleString()}</span>
+              </div>
+              
+              <div className="p-4 bg-green-50 rounded-lg border border-green-200 cursor-pointer hover:bg-green-100 transition-colors">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h5 className="font-semibold text-green-900">6 Jars Method</h5>
+                    <p className="text-sm text-green-700">แบ่งเงินเป็น 6 หมวดหมู่</p>
+                  </div>
+                  <div className="text-xs text-green-600">6 หมวดหมู่</div>
+                </div>
+              </div>
+              
+              <div className="p-4 bg-purple-50 rounded-lg border border-purple-200 cursor-pointer hover:bg-purple-100 transition-colors">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h5 className="font-semibold text-purple-900">Custom Plan</h5>
+                    <p className="text-sm text-purple-700">ปรับแต่งตามต้องการ</p>
+                  </div>
+                  <div className="text-xs text-purple-600">ปรับเอง</div>
                 </div>
               </div>
             </div>
           </div>
           
-          {/* Investment Tips */}
-          <div>
-            <h4 className="font-medium text-gray-700 mb-4">คำแนะนำการลงทุน</h4>
-            <div className="space-y-3">
-              <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
-                <div className="flex items-start space-x-3">
-                  <ExclamationTriangleIcon className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                  <div>
-                    <p className="text-sm font-medium text-blue-900">การจัดลำดับความสำคัญ</p>
-                    <p className="text-sm text-blue-700">เน้นเป้าหมายที่มีความสำคัญสูงก่อน เช่น เงินออมฉุกเฉิน</p>
+          {/* Current Plan Display */}
+          <div className="lg:col-span-2">
+            <h4 className="font-medium text-gray-700 mb-4">แผนการเงินปัจจุบัน (50/30/20)</h4>
+            <div className="space-y-4">
+              {/* Income Summary */}
+              <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="font-medium text-gray-900">รายได้รวมรายเดือน</span>
+                  <span className="text-2xl font-bold text-green-600">฿{monthlyPlan.totalIncome.toLocaleString()}</span>
+                </div>
+              </div>
+              
+              {/* Expense Breakdown */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="bg-red-50 rounded-lg p-4 border border-red-200">
+                  <div className="text-center">
+                    <div className="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center mx-auto mb-2">
+                      <span className="text-xl font-bold text-white">50%</span>
+                    </div>
+                    <h5 className="font-semibold text-red-900 mb-1">ความต้องการจำเป็น</h5>
+                    <p className="text-2xl font-bold text-red-600">฿{(monthlyPlan.totalIncome * 0.5).toLocaleString()}</p>
+                    <p className="text-sm text-red-700">ค่าผ่อนรถ, ค่าบ้าน, อาหาร</p>
+                  </div>
+                </div>
+                
+                <div className="bg-yellow-50 rounded-lg p-4 border border-yellow-200">
+                  <div className="text-center">
+                    <div className="w-16 h-16 bg-yellow-500 rounded-full flex items-center justify-center mx-auto mb-2">
+                      <span className="text-xl font-bold text-white">30%</span>
+                    </div>
+                    <h5 className="font-semibold text-yellow-900 mb-1">ความต้องการ</h5>
+                    <p className="text-2xl font-bold text-yellow-600">฿{(monthlyPlan.totalIncome * 0.3).toLocaleString()}</p>
+                    <p className="text-sm text-yellow-700">บันเทิง, ช้อปปิ้ง, ท่องเที่ยว</p>
+                  </div>
+                </div>
+                
+                <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                  <div className="text-center">
+                    <div className="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-2">
+                      <span className="text-xl font-bold text-white">20%</span>
+                    </div>
+                    <h5 className="font-semibold text-blue-900 mb-1">การออมและลงทุน</h5>
+                    <p className="text-2xl font-bold text-blue-600">฿{(monthlyPlan.totalIncome * 0.2).toLocaleString()}</p>
+                    <p className="text-sm text-blue-700">เงินออม, ลงทุน, เงินฉุกเฉิน</p>
                   </div>
                 </div>
               </div>
               
-              <div className="p-3 bg-green-50 rounded-lg border border-green-200">
-                <div className="flex items-start space-x-3">
-                  <CheckCircleIcon className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
-                  <div>
-                    <p className="text-sm font-medium text-green-900">การปรับแผน</p>
-                    <p className="text-sm text-green-700">ปรับแผนทุก 6 เดือนตามสถานการณ์การเงินที่เปลี่ยนแปลง</p>
+              {/* Investment Allocation */}
+              <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                <h5 className="font-semibold text-blue-900 mb-3">การจัดสรรเงินลงทุน (฿{(monthlyPlan.totalIncome * 0.2).toLocaleString()})</h5>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-700">เงินออมฉุกเฉิน</span>
+                    <span className="font-medium text-blue-900">฿{monthlyPlan.emergency}</span>
                   </div>
-                </div>
-              </div>
-              
-              <div className="p-3 bg-yellow-50 rounded-lg border border-yellow-200">
-                <div className="flex items-start space-x-3">
-                  <ChartBarIcon className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" />
-                  <div>
-                    <p className="text-sm font-medium text-yellow-900">การกระจายความเสี่ยง</p>
-                    <p className="text-sm text-yellow-700">กระจายการลงทุนในหลายเป้าหมายเพื่อลดความเสี่ยง</p>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-700">การลงทุนระยะสั้น</span>
+                    <span className="font-medium text-blue-900">฿{(monthlyPlan.investment * 0.4).toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-700">การลงทุนระยะยาว</span>
+                    <span className="font-medium text-blue-900">฿{(monthlyPlan.investment * 0.6).toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-700">รวมการลงทุน</span>
+                    <span className="font-bold text-blue-900">฿{monthlyPlan.investment}</span>
                   </div>
                 </div>
               </div>
