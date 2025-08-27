@@ -569,35 +569,55 @@ export default function FinancialGoalsPage() {
         <div className="card">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">การกระจายการลงทุนรายเดือน</h3>
           {mounted && (
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={pieData}
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={80}
-                  innerRadius={40}
-                  paddingAngle={2}
-                  dataKey="value"
-                >
-                  {pieData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip
-                  formatter={(value: any, name: any) => [
-                    `฿${value.toLocaleString()}`,
-                    'ลงทุนรายเดือน'
-                  ]}
-                  contentStyle={{
-                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                    border: '1px solid #e5e7eb',
-                    borderRadius: '8px',
-                    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
-                  }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
+            <>
+              <ResponsiveContainer width="100%" height={250}>
+                <PieChart>
+                  <Pie
+                    data={pieData}
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={80}
+                    innerRadius={40}
+                    paddingAngle={2}
+                    dataKey="value"
+                  >
+                    {pieData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    formatter={(value: any, name: any) => [
+                      `฿${value.toLocaleString()}`,
+                      'ลงทุนรายเดือน'
+                    ]}
+                    contentStyle={{
+                      backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '8px',
+                      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+                    }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+              
+              {/* Legend */}
+              <div className="mt-4 flex flex-wrap justify-center gap-4">
+                {pieData.map((entry, index) => (
+                  <div key={index} className="flex items-center space-x-2">
+                    <div 
+                      className="w-4 h-4 rounded-full"
+                      style={{ backgroundColor: entry.color }}
+                    ></div>
+                    <span className="text-sm text-gray-700 font-medium">
+                      {entry.name}
+                    </span>
+                    <span className="text-sm text-gray-500">
+                      (฿{entry.value.toLocaleString()})
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </>
           )}
         </div>
       </div>
