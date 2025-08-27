@@ -109,7 +109,7 @@ export default function InvestmentPlanningPage() {
       </div>
 
       {/* 50/30/20 Rule */}
-      <div className="card">
+      {/* <div className="card">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">50/30/20 Rule</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="text-center p-6 bg-blue-50 rounded-lg">
@@ -139,7 +139,7 @@ export default function InvestmentPlanningPage() {
             <p className="text-sm text-gray-600">{rule503020.savings.description}</p>
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Risk Profile Assessment */}
       <div className="card">

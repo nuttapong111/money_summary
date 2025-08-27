@@ -473,32 +473,82 @@ export default function FinancialGoalsPage() {
         </div>
       </div>
 
-      {/* Monthly Investment Calculator */}
+      {/* Monthly Investment Plan */}
       <div className="card">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">คำนวณจำนวนเงินที่ต้องลงทุนรายเดือน</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <h4 className="font-medium text-gray-700 mb-3">สรุปการลงทุนรายเดือน</h4>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0 mb-6">
+          <h3 className="text-lg font-semibold text-gray-900">แผนการลงทุนรายเดือน</h3>
+          <button
+            onClick={() => setShowAddForm(true)}
+            className="w-full sm:w-auto px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors flex items-center justify-center space-x-2 text-sm"
+          >
+            <PlusIcon className="w-4 h-4" />
+            <span>เพิ่มแผนการลงทุน</span>
+          </button>
+        </div>
+        
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Investment Summary */}
+          <div className="lg:col-span-2">
+            <h4 className="font-medium text-gray-700 mb-4 text-center lg:text-left">สรุปการลงทุนรายเดือน</h4>
             <div className="space-y-3">
               {goals.map((goal, index) => (
-                <div key={index} className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">{goal.name}</span>
-                  <span className="font-semibold text-gray-900">฿{goal.monthlyInvestment.toLocaleString()}</span>
+                <div key={index} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center space-x-3">
+                      <div className={`w-3 h-3 rounded-full ${getPriorityColor(goal.priority).replace('bg-', 'bg-').replace('text-', 'bg-')}`}></div>
+                      <span className="font-medium text-gray-900">{goal.name}</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <span className="text-lg font-bold text-blue-600">฿{goal.monthlyInvestment.toLocaleString()}</span>
+                      <button
+                        onClick={() => {
+                          setEditingGoal(goal)
+                          setNewGoal({
+                            name: goal.name,
+                            target: goal.target.toString(),
+                            deadline: goal.deadline ? dayjs(goal.deadline, 'YYYY') : null,
+                            type: goal.type,
+                            monthlyInvestment: goal.monthlyInvestment.toString(),
+                            priority: goal.priority,
+                            description: ''
+                          })
+                          setShowAddForm(true)
+                        }}
+                        className="p-1 text-gray-400 hover:text-blue-600"
+                      >
+                        <PencilIcon className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteGoal(goal.name)}
+                        className="p-1 text-gray-400 hover:text-red-600"
+                      >
+                        <TrashIcon className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                  <div className="flex justify-between text-sm text-gray-600">
+                    <span>เป้าหมาย: ฿{goal.target.toLocaleString()}</span>
+                    <span>เก็บแล้ว: ฿{goal.current.toLocaleString()}</span>
+                    <span>ความคืบหน้า: {((goal.current / goal.target) * 100).toFixed(1)}%</span>
+                  </div>
                 </div>
               ))}
-              <div className="border-t pt-2 flex justify-between font-bold">
-                <span>รวมรายเดือน</span>
-                <span className="text-blue-600">฿{totalMonthlyInvestment.toLocaleString()}</span>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="flex justify-between items-center">
+                  <span className="font-bold text-blue-900">รวมการลงทุนรายเดือน</span>
+                  <span className="text-2xl font-bold text-blue-600">฿{totalMonthlyInvestment.toLocaleString()}</span>
+                </div>
               </div>
             </div>
           </div>
           
+          {/* Investment Tips */}
           <div>
-            <h4 className="font-medium text-gray-700 mb-3">คำแนะนำ</h4>
+            <h4 className="font-medium text-gray-700 mb-4">คำแนะนำการลงทุน</h4>
             <div className="space-y-3">
-              <div className="p-3 bg-blue-50 rounded-lg">
+              <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
                 <div className="flex items-start space-x-3">
-                  <ExclamationTriangleIcon className="w-5 h-5 text-blue-600 mt-0.5" />
+                  <ExclamationTriangleIcon className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
                   <div>
                     <p className="text-sm font-medium text-blue-900">การจัดลำดับความสำคัญ</p>
                     <p className="text-sm text-blue-700">เน้นเป้าหมายที่มีความสำคัญสูงก่อน เช่น เงินออมฉุกเฉิน</p>
@@ -506,12 +556,22 @@ export default function FinancialGoalsPage() {
                 </div>
               </div>
               
-              <div className="p-3 bg-green-50 rounded-lg">
+              <div className="p-3 bg-green-50 rounded-lg border border-green-200">
                 <div className="flex items-start space-x-3">
-                  <CheckCircleIcon className="w-5 h-5 text-green-600 mt-0.5" />
+                  <CheckCircleIcon className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
                   <div>
                     <p className="text-sm font-medium text-green-900">การปรับแผน</p>
                     <p className="text-sm text-green-700">ปรับแผนทุก 6 เดือนตามสถานการณ์การเงินที่เปลี่ยนแปลง</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+                <div className="flex items-start space-x-3">
+                  <ChartBarIcon className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="text-sm font-medium text-yellow-900">การกระจายความเสี่ยง</p>
+                    <p className="text-sm text-yellow-700">กระจายการลงทุนในหลายเป้าหมายเพื่อลดความเสี่ยง</p>
                   </div>
                 </div>
               </div>
