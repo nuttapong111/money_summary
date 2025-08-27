@@ -522,12 +522,11 @@ export default function InvestmentPortfolioPage() {
       </div>
 
       {/* Portfolio History Chart */}
-              <div className="card">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">ประวัติมูลค่าพอร์ต</h3>
-          <div className="h-80 w-full overflow-hidden">
-            {mounted && createLineChart()}
-          </div>
-
+      <div className="card">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">ประวัติมูลค่าพอร์ต</h3>
+        <div className="h-80 w-full overflow-hidden">
+          {mounted && createLineChart()}
+        </div>
       </div>
 
       {/* Investment Recommendations */}
