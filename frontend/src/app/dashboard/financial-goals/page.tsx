@@ -526,42 +526,60 @@ export default function FinancialGoalsPage() {
         <div className="card">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">กราฟความคืบหน้าเป้าหมาย</h3>
           {mounted && (
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-                <XAxis 
-                  dataKey="name" 
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fontSize: 12, fill: '#6b7280' }}
-                  angle={-45}
-                  textAnchor="end"
-                  height={80}
-                />
-                <YAxis 
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fontSize: 12, fill: '#6b7280' }}
-                  tickFormatter={(value) => `฿${(value / 1000000).toFixed(1)}M`}
-                />
-                <Tooltip
-                  formatter={(value: any, name: any) => [
-                    `฿${value.toLocaleString()}`,
-                    name === 'target' ? 'เป้าหมาย' : name === 'current' ? 'เก็บแล้ว' : 'เหลือ'
-                  ]}
-                  labelFormatter={(label) => `เป้าหมาย: ${label}`}
-                  contentStyle={{
-                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                    border: '1px solid #e5e7eb',
-                    borderRadius: '8px',
-                    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
-                  }}
-                />
-                <Bar dataKey="target" fill="#3b82f6" name="เป้าหมาย" />
-                <Bar dataKey="current" fill="#10b981" name="เก็บแล้ว" />
-                <Bar dataKey="remaining" fill="#f59e0b" name="เหลือ" />
-              </BarChart>
-            </ResponsiveContainer>
+            <>
+              <ResponsiveContainer width="100%" height={250}>
+                <BarChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
+                  <XAxis 
+                    dataKey="name" 
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fontSize: 12, fill: '#6b7280' }}
+                    angle={-45}
+                    textAnchor="end"
+                    height={80}
+                  />
+                  <YAxis 
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fontSize: 12, fill: '#6b7280' }}
+                    tickFormatter={(value) => `฿${(value / 1000000).toFixed(1)}M`}
+                  />
+                  <Tooltip
+                    formatter={(value: any, name: any) => [
+                      `฿${value.toLocaleString()}`,
+                      name === 'target' ? 'เป้าหมาย' : name === 'current' ? 'เก็บแล้ว' : 'เหลือ'
+                    ]}
+                    labelFormatter={(label) => `เป้าหมาย: ${label}`}
+                    contentStyle={{
+                      backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '8px',
+                      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+                    }}
+                  />
+                  <Bar dataKey="target" fill="#3b82f6" name="เป้าหมาย" />
+                  <Bar dataKey="current" fill="#10b981" name="เก็บแล้ว" />
+                  <Bar dataKey="remaining" fill="#f59e0b" name="เหลือ" />
+                </BarChart>
+              </ResponsiveContainer>
+              
+              {/* Legend */}
+              <div className="mt-4 flex flex-wrap justify-center gap-6">
+                <div className="flex items-center space-x-2">
+                  <div className="w-4 h-4 rounded" style={{ backgroundColor: '#3b82f6' }}></div>
+                  <span className="text-sm text-gray-700 font-medium">เป้าหมาย</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="w-4 h-4 rounded" style={{ backgroundColor: '#10b981' }}></div>
+                  <span className="text-sm text-gray-700 font-medium">เก็บแล้ว</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="w-4 h-4 rounded" style={{ backgroundColor: '#f59e0b' }}></div>
+                  <span className="text-sm text-gray-700 font-medium">เหลือ</span>
+                </div>
+              </div>
+            </>
           )}
         </div>
 
