@@ -29,7 +29,9 @@ export default function InvestmentPortfolioPage() {
     name: '',
     value: '',
     type: 'stock',
-    risk: 'medium'
+    risk: 'medium',
+    market: '',
+    stockName: ''
   })
 
   useEffect(() => {
@@ -86,6 +88,49 @@ export default function InvestmentPortfolioPage() {
     { value: 'high', label: 'สูง' }
   ]
 
+  // ข้อมูลตลาดหุ้น
+  const stockMarkets = [
+    { value: 'SET', label: 'ตลาดหลักทรัพย์แห่งประเทศไทย (SET)' },
+    { value: 'MAI', label: 'ตลาดหลักทรัพย์เพื่อการลงทุนในธุรกิจใหม่ (MAI)' },
+    { value: 'BOND', label: 'ตลาดพันธบัตร' },
+    { value: 'FOREIGN', label: 'ตลาดต่างประเทศ' }
+  ]
+
+  // ข้อมูลหุ้นในตลาด SET
+  const setStocks = [
+    { value: 'SET50', label: 'SET50 Index Fund' },
+    { value: 'PTT', label: 'PTT Public Company Limited' },
+    { value: 'SCB', label: 'Siam Commercial Bank' },
+    { value: 'CPALL', label: 'CP All Public Company Limited' },
+    { value: 'ADVANC', label: 'Advanced Info Service' },
+    { value: 'AOT', label: 'Airports of Thailand' },
+    { value: 'TRUE', label: 'True Corporation' },
+    { value: 'KBANK', label: 'Kasikornbank' },
+    { value: 'BBL', label: 'Bangkok Bank' },
+    { value: 'CPF', label: 'Charoen Pokphand Foods' }
+  ]
+
+  // ข้อมูลหุ้นในตลาด MAI
+  const maiStocks = [
+    { value: 'MAI', label: 'MAI Index Fund' },
+    { value: 'TICON', label: 'TICON Industrial Connection' },
+    { value: 'SPALI', label: 'Supalai' },
+    { value: 'SIRI', label: 'Sansiri' },
+    { value: 'ANAN', label: 'Ananda Development' }
+  ]
+
+  // ข้อมูลกองทุนรวม
+  const mutualFunds = [
+    { value: 'KTAM', label: 'KTAM - กองทุนเปิดกรุงไทย' },
+    { value: 'SCBAM', label: 'SCBAM - กองทุนเปิดไทยพาณิชย์' },
+    { value: 'BAM', label: 'BAM - กองทุนเปิดกรุงเทพ' },
+    { value: 'TMBAM', label: 'TMBAM - กองทุนเปิดทหารไทยธนชาต' },
+    { value: 'AAM', label: 'AAM - กองทุนเปิดเอไอเอ' },
+    { value: 'MFCAM', label: 'MFCAM - กองทุนเปิดเมโทร' },
+    { value: 'UOBAM', label: 'UOBAM - กองทุนเปิดยูโอบี' },
+    { value: 'INVESCO', label: 'INVESCO - กองทุนเปิดอินเวสโก' }
+  ]
+
   const getRiskColor = (risk: string) => {
     switch (risk) {
       case 'very-low': return 'bg-green-100 text-green-800'
@@ -106,15 +151,72 @@ export default function InvestmentPortfolioPage() {
     }
   }
 
+  // ฟังก์ชันสำหรับจัดการการเปลี่ยนแปลงประเภทการลงทุน
+  const handleInvestmentTypeChange = (type: string) => {
+    setNewInvestment(prev => ({
+      ...prev,
+      type,
+      market: '',
+      stockName: ''
+    }))
+  }
+
+  // ฟังก์ชันสำหรับจัดการการเปลี่ยนแปลงตลาด
+  const handleMarketChange = (market: string) => {
+    setNewInvestment(prev => ({
+      ...prev,
+      market,
+      stockName: ''
+    }))
+  }
+
+  // ฟังก์ชันสำหรับดึงรายการหุ้นตามตลาด
+  const getStocksByMarket = (market: string) => {
+    switch (market) {
+      case 'SET': return setStocks
+      case 'MAI': return maiStocks
+      default: return []
+    }
+  }
+
+  // ฟังก์ชันสำหรับดึงรายการกองทุนรวม
+  const getMutualFunds = () => {
+    return mutualFunds
+  }
+
   const handleAddInvestment = () => {
-    if (!newInvestment.name || !newInvestment.value) {
-      alert('กรุณากรอกข้อมูลให้ครบถ้วน')
+    if (!newInvestment.value) {
+      alert('กรุณากรอกมูลค่าให้ครบถ้วน')
       return
     }
 
+    // ตรวจสอบข้อมูลตามประเภทการลงทุน
+    if (newInvestment.type === 'stock') {
+      if (!newInvestment.market || !newInvestment.stockName) {
+        alert('กรุณาเลือกตลาดและชื่อหุ้นให้ครบถ้วน')
+        return
+      }
+    } else if (newInvestment.type === 'fund') {
+      if (!newInvestment.stockName) {
+        alert('กรุณาเลือกชื่อกองทุนให้ครบถ้วน')
+        return
+      }
+    }
+
     const value = parseFloat(newInvestment.value)
+    
+    // สร้างชื่อการลงทุนจากข้อมูลที่เลือก
+    let investmentName = newInvestment.name
+    if (newInvestment.type === 'stock' && newInvestment.stockName) {
+      const stock = getStocksByMarket(newInvestment.market).find(s => s.value === newInvestment.stockName)
+      investmentName = stock ? stock.label : newInvestment.name
+    } else if (newInvestment.type === 'fund' && newInvestment.stockName) {
+      const fund = getMutualFunds().find(f => f.value === newInvestment.stockName)
+      investmentName = fund ? fund.label : newInvestment.name
+    }
+
     const newInv: Investment = {
-      name: newInvestment.name,
+      name: investmentName,
       value,
       change: 0, // เริ่มต้นที่ 0%
       type: newInvestment.type,
@@ -127,7 +229,9 @@ export default function InvestmentPortfolioPage() {
       name: '',
       value: '',
       type: 'stock',
-      risk: 'medium'
+      risk: 'medium',
+      market: '',
+      stockName: ''
     })
     setShowAddForm(false)
   }
@@ -449,16 +553,6 @@ export default function InvestmentPortfolioPage() {
             </div>
             
             <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">ชื่อการลงทุน</label>
-                <input
-                  type="text"
-                  value={newInvestment.name}
-                  onChange={(e) => setNewInvestment(prev => ({ ...prev, name: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="เช่น หุ้น SET50, กองทุนรวม"
-                />
-              </div>
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">มูลค่า (บาท)</label>
@@ -475,7 +569,7 @@ export default function InvestmentPortfolioPage() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">ประเภทการลงทุน</label>
                 <select
                   value={newInvestment.type}
-                  onChange={(e) => setNewInvestment(prev => ({ ...prev, type: e.target.value }))}
+                  onChange={(e) => handleInvestmentTypeChange(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
                   {investmentTypes?.map(type => (
@@ -483,6 +577,57 @@ export default function InvestmentPortfolioPage() {
                   ))}
                 </select>
               </div>
+
+              {/* แสดงตลาดเมื่อเลือกหุ้น */}
+              {(newInvestment.type === 'stock') && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">ตลาด</label>
+                  <select
+                    value={newInvestment.market}
+                    onChange={(e) => handleMarketChange(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="">เลือกตลาด</option>
+                    {stockMarkets?.map(market => (
+                      <option key={market.value} value={market.value}>{market.label}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {/* แสดงชื่อหุ้นเมื่อเลือกตลาด */}
+              {(newInvestment.type === 'stock' && newInvestment.market) && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">ชื่อหุ้น</label>
+                  <select
+                    value={newInvestment.stockName}
+                    onChange={(e) => setNewInvestment(prev => ({ ...prev, stockName: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="">เลือกหุ้น</option>
+                    {getStocksByMarket(newInvestment.market)?.map(stock => (
+                      <option key={stock.value} value={stock.value}>{stock.label}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {/* แสดงชื่อกองทุนเมื่อเลือกกองทุนรวม */}
+              {(newInvestment.type === 'fund') && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">ชื่อกองทุน</label>
+                  <select
+                    value={newInvestment.stockName}
+                    onChange={(e) => setNewInvestment(prev => ({ ...prev, stockName: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="">เลือกกองทุน</option>
+                    {getMutualFunds()?.map(fund => (
+                      <option key={fund.value} value={fund.value}>{fund.label}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">ระดับความเสี่ยง</label>
