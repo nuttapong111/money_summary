@@ -1,27 +1,13 @@
 import type { Metadata } from 'next'
-import { Inter, Orbitron } from 'next/font/google'
-import '@/styles/globals.css'
-import { ThemeProvider } from '@/contexts/ThemeContext'
-import { AuthProvider } from '@/contexts/AuthContext'
-import { Toaster } from 'react-hot-toast'
+import { Inter } from 'next/font/google'
+import './globals.css'
+import { Providers } from '@/components/providers'
 
-const inter = Inter({ 
-  subsets: ['latin'],
-  variable: '--font-inter'
-})
-
-const orbitron = Orbitron({ 
-  subsets: ['latin'],
-  variable: '--font-orbitron'
-})
+const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Money App - ระบบการเงินการลงทุนอวกาศโลกอนาคต',
-  description: 'ระบบการเงินการลงทุนที่ออกแบบด้วยธีมอวกาศโลกอนาคต ใช้เทคโนโลยีล่าสุดและ Clean Architecture',
-  keywords: ['การเงิน', 'การลงทุน', 'การจัดการเงิน', 'พอร์ตการลงทุน', 'การวางแผนการเงิน'],
-  authors: [{ name: 'Money App Team' }],
-  viewport: 'width=device-width, initial-scale=1',
-  robots: 'index, follow',
+  title: 'Money Investment System',
+  description: 'ระบบการเงินการลงทุนที่ทันสมัย',
 }
 
 export default function RootLayout({
@@ -30,28 +16,12 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="th" suppressHydrationWarning>
-      <body className={`${inter.variable} ${orbitron.variable} font-sans antialiased`}>
-        <ThemeProvider>
-          <AuthProvider>
-            <div className="min-h-screen bg-space-background text-space-text">
-              {children}
-              <Toaster 
-                position="top-right"
-                toastOptions={{
-                  duration: 4000,
-                  style: {
-                    background: 'var(--space-surface)',
-                    color: 'var(--space-text)',
-                    border: '1px solid var(--space-border)',
-                  },
-                }}
-              />
-            </div>
-          </AuthProvider>
-        </ThemeProvider>
+    <html lang="th">
+      <body className={inter.className}>
+        <Providers>
+          {children}
+        </Providers>
       </body>
     </html>
   )
 }
-

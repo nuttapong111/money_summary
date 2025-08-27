@@ -58,9 +58,6 @@ jspm_packages/
 # Yarn Integrity file
 .yarn-integrity
 
-# dotenv environment variables file
-.env.test
-
 # parcel-bundler cache (https://parceljs.org/)
 .cache
 .parcel-cache
@@ -70,6 +67,7 @@ jspm_packages/
 
 # Nuxt.js build / generate output
 .nuxt
+dist
 
 # Gatsby files
 .cache/
@@ -102,13 +100,28 @@ Thumbs.db
 # Docker
 .dockerignore
 
+# Railway
+.railway/
+
 # Database
 *.sqlite
 *.db
 
-# Testing
-.nyc_output
-coverage/
+# SSL certificates
+*.pem
+*.key
+*.crt
 
-# TypeScript
+# Backup files
+*.bak
+*.backup
+
+# Test files
+*.test.js
+*.spec.js
+test-results/
+playwright-report/
+playwright/.cache/
+
+# Build artifacts
 *.tsbuildinfo
