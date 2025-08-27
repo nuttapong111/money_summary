@@ -12,6 +12,8 @@ import {
   XMarkIcon
 } from '@heroicons/react/24/outline'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart, PieChart, Pie, Cell } from 'recharts'
+import { Select, Input, Button, Modal, Form, InputNumber } from 'antd'
+import { SearchOutlined } from '@ant-design/icons'
 
 interface Investment {
   name: string
@@ -121,14 +123,30 @@ export default function InvestmentPortfolioPage() {
 
   // ข้อมูลกองทุนรวม
   const mutualFunds = [
-    { value: 'KTAM', label: 'KTAM - กองทุนเปิดกรุงไทย' },
-    { value: 'SCBAM', label: 'SCBAM - กองทุนเปิดไทยพาณิชย์' },
-    { value: 'BAM', label: 'BAM - กองทุนเปิดกรุงเทพ' },
-    { value: 'TMBAM', label: 'TMBAM - กองทุนเปิดทหารไทยธนชาต' },
-    { value: 'AAM', label: 'AAM - กองทุนเปิดเอไอเอ' },
-    { value: 'MFCAM', label: 'MFCAM - กองทุนเปิดเมโทร' },
-    { value: 'UOBAM', label: 'UOBAM - กองทุนเปิดยูโอบี' },
-    { value: 'INVESCO', label: 'INVESCO - กองทุนเปิดอินเวสโก' }
+    { value: 'KTAM-SET50', label: 'KTAM - กองทุนเปิด SET50 Index Fund' },
+    { value: 'KTAM-SET100', label: 'KTAM - กองทุนเปิด SET100 Index Fund' },
+    { value: 'SCBAM-SET50', label: 'SCBAM - กองทุนเปิด SET50 Index Fund' },
+    { value: 'SCBAM-SET100', label: 'SCBAM - กองทุนเปิด SET100 Index Fund' },
+    { value: 'BAM-SET50', label: 'BAM - กองทุนเปิด SET50 Index Fund' },
+    { value: 'BAM-SET100', label: 'BAM - กองทุนเปิด SET100 Index Fund' },
+    { value: 'TMBAM-SET50', label: 'TMBAM - กองทุนเปิด SET50 Index Fund' },
+    { value: 'TMBAM-SET100', label: 'TMBAM - กองทุนเปิด SET100 Index Fund' },
+    { value: 'AAM-SET50', label: 'AAM - กองทุนเปิด SET50 Index Fund' },
+    { value: 'AAM-SET100', label: 'AAM - กองทุนเปิด SET100 Index Fund' },
+    { value: 'MFCAM-SET50', label: 'MFCAM - กองทุนเปิด SET50 Index Fund' },
+    { value: 'MFCAM-SET100', label: 'MFCAM - กองทุนเปิด SET100 Index Fund' },
+    { value: 'UOBAM-SET50', label: 'UOBAM - กองทุนเปิด SET50 Index Fund' },
+    { value: 'UOBAM-SET100', label: 'UOBAM - กองทุนเปิด SET100 Index Fund' },
+    { value: 'INVESCO-SET50', label: 'INVESCO - กองทุนเปิด SET50 Index Fund' },
+    { value: 'INVESCO-SET100', label: 'INVESCO - กองทุนเปิด SET100 Index Fund' },
+    { value: 'KTAM-BOND', label: 'KTAM - กองทุนเปิดพันธบัตรรัฐบาล' },
+    { value: 'SCBAM-BOND', label: 'SCBAM - กองทุนเปิดพันธบัตรรัฐบาล' },
+    { value: 'BAM-BOND', label: 'BAM - กองทุนเปิดพันธบัตรรัฐบาล' },
+    { value: 'TMBAM-BOND', label: 'TMBAM - กองทุนเปิดพันธบัตรรัฐบาล' },
+    { value: 'AAM-BOND', label: 'AAM - กองทุนเปิดพันธบัตรรัฐบาล' },
+    { value: 'MFCAM-BOND', label: 'MFCAM - กองทุนเปิดพันธบัตรรัฐบาล' },
+    { value: 'UOBAM-BOND', label: 'UOBAM - กองทุนเปิดพันธบัตรรัฐบาล' },
+    { value: 'INVESCO-BOND', label: 'INVESCO - กองทุนเปิดพันธบัตรรัฐบาล' }
   ]
 
   const getRiskColor = (risk: string) => {
@@ -556,42 +574,49 @@ export default function InvestmentPortfolioPage() {
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">มูลค่า (บาท)</label>
-                <input
-                  type="number"
-                  value={newInvestment.value}
-                  onChange={(e) => setNewInvestment(prev => ({ ...prev, value: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                <InputNumber
+                  value={newInvestment.value ? parseFloat(newInvestment.value) : undefined}
+                  onChange={(value) => setNewInvestment(prev => ({ ...prev, value: value ? value.toString() : '' }))}
+                  className="w-full"
                   placeholder="0"
+                  formatter={(value) => `฿ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                  parser={(value) => parseFloat(value!.replace(/฿\s?|(,*)/g, ''))}
+                  min={0}
                 />
               </div>
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">ประเภทการลงทุน</label>
-                <select
+                <Select
                   value={newInvestment.type}
-                  onChange={(e) => handleInvestmentTypeChange(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                >
-                  {investmentTypes?.map(type => (
-                    <option key={type.value} value={type.value}>{type.label}</option>
-                  ))}
-                </select>
+                  onChange={handleInvestmentTypeChange}
+                  className="w-full"
+                  placeholder="พิมพ์ค้นหาและเลือกประเภทการลงทุน (เช่น หุ้น, กองทุนรวม, พันธบัตร, ทองคำ)"
+                  showSearch
+                  filterOption={(input, option) =>
+                    (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+                  }
+                  options={investmentTypes}
+                  notFoundContent="ไม่พบประเภทการลงทุนที่ค้นหา"
+                />
               </div>
 
               {/* แสดงตลาดเมื่อเลือกหุ้น */}
               {(newInvestment.type === 'stock') && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">ตลาด</label>
-                  <select
+                  <Select
                     value={newInvestment.market}
-                    onChange={(e) => handleMarketChange(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  >
-                    <option value="">เลือกตลาด</option>
-                    {stockMarkets?.map(market => (
-                      <option key={market.value} value={market.value}>{market.label}</option>
-                    ))}
-                  </select>
+                    onChange={handleMarketChange}
+                    className="w-full"
+                    placeholder="พิมพ์ค้นหาและเลือกตลาด (เช่น SET, MAI, พันธบัตร, ต่างประเทศ)"
+                    showSearch
+                    filterOption={(input, option) =>
+                      (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+                    }
+                    options={stockMarkets}
+                    notFoundContent="ไม่พบตลาดที่ค้นหา"
+                  />
                 </div>
               )}
 
@@ -599,16 +624,18 @@ export default function InvestmentPortfolioPage() {
               {(newInvestment.type === 'stock' && newInvestment.market) && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">ชื่อหุ้น</label>
-                  <select
+                  <Select
                     value={newInvestment.stockName}
-                    onChange={(e) => setNewInvestment(prev => ({ ...prev, stockName: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  >
-                    <option value="">เลือกหุ้น</option>
-                    {getStocksByMarket(newInvestment.market)?.map(stock => (
-                      <option key={stock.value} value={stock.value}>{stock.label}</option>
-                    ))}
-                  </select>
+                    onChange={(value) => setNewInvestment(prev => ({ ...prev, stockName: value }))}
+                    className="w-full"
+                    placeholder="พิมพ์ค้นหาและเลือกหุ้น (เช่น SET50, PTT, SCB, CPALL)"
+                    showSearch
+                    filterOption={(input, option) =>
+                      (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+                    }
+                    options={getStocksByMarket(newInvestment.market)}
+                    notFoundContent="ไม่พบหุ้นที่ค้นหา"
+                  />
                 </div>
               )}
 
@@ -616,46 +643,52 @@ export default function InvestmentPortfolioPage() {
               {(newInvestment.type === 'fund') && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">ชื่อกองทุน</label>
-                  <select
+                  <Select
                     value={newInvestment.stockName}
-                    onChange={(e) => setNewInvestment(prev => ({ ...prev, stockName: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  >
-                    <option value="">เลือกกองทุน</option>
-                    {getMutualFunds()?.map(fund => (
-                      <option key={fund.value} value={fund.value}>{fund.label}</option>
-                    ))}
-                  </select>
+                    onChange={(value) => setNewInvestment(prev => ({ ...prev, stockName: value }))}
+                    className="w-full"
+                    placeholder="พิมพ์ค้นหาและเลือกกองทุน (เช่น KTAM, SCBAM, SET50, พันธบัตร)"
+                    showSearch
+                    filterOption={(input, option) =>
+                      (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+                    }
+                    options={getMutualFunds()}
+                    notFoundContent="ไม่พบกองทุนที่ค้นหา"
+                  />
                 </div>
               )}
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">ระดับความเสี่ยง</label>
-                <select
+                <Select
                   value={newInvestment.risk}
-                  onChange={(e) => setNewInvestment(prev => ({ ...prev, risk: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                >
-                  {riskLevels?.map(risk => (
-                    <option key={risk.value} value={risk.value}>{risk.label}</option>
-                  ))}
-                </select>
+                  onChange={(value) => setNewInvestment(prev => ({ ...prev, risk: value }))}
+                  className="w-full"
+                  placeholder="พิมพ์ค้นหาและเลือกระดับความเสี่ยง (เช่น ต่ำมาก, ต่ำ, ปานกลาง, สูง)"
+                  showSearch
+                  filterOption={(input, option) =>
+                    (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+                  }
+                  options={riskLevels}
+                  notFoundContent="ไม่พบระดับความเสี่ยงที่ค้นหา"
+                />
               </div>
             </div>
             
             <div className="flex justify-end space-x-3 mt-6">
-              <button
+              <Button
                 onClick={() => setShowAddForm(false)}
-                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                className="px-4 py-2"
               >
                 ยกเลิก
-              </button>
-              <button
+              </Button>
+              <Button
+                type="primary"
                 onClick={handleAddInvestment}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="px-4 py-2"
               >
                 เพิ่มรายการ
-              </button>
+              </Button>
             </div>
           </div>
         </div>
