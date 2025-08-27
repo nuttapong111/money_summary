@@ -11,7 +11,7 @@ import {
   PlusIcon,
   XMarkIcon
 } from '@heroicons/react/24/outline'
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts'
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart, PieChart, Pie, Cell } from 'recharts'
 
 interface Investment {
   name: string
@@ -30,12 +30,7 @@ export default function InvestmentPortfolioPage() {
     type: 'stock',
     risk: 'medium'
   })
-  const [tooltip, setTooltip] = useState({
-    show: false,
-    text: '',
-    x: 0,
-    y: 0
-  })
+
 
   // Mock data
   const portfolio = {
@@ -132,98 +127,59 @@ export default function InvestmentPortfolioPage() {
     setShowAddForm(false)
   }
 
-  const handleMouseEnter = (e: React.MouseEvent, asset: any) => {
-    const rect = e.currentTarget.getBoundingClientRect()
-    
-    setTooltip({
-      show: true,
-      text: `${asset.type}: ${asset.percentage}% (฿${asset.value?.toLocaleString()})`,
-      x: rect.left + rect.width / 2,
-      y: rect.top - 50
-    })
-  }
 
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (tooltip.show) {
-      setTooltip(prev => ({
-        ...prev,
-        x: e.clientX,
-        y: e.clientY - 50
-      }))
-    }
-  }
 
-  const handleMouseLeave = () => {
-    setTooltip({
-      show: false,
-      text: '',
-      x: 0,
-      y: 0
-    })
-  }
-
-  // สร้าง Pie Chart SVG แบบ Modern
+  // สร้าง Pie Chart ด้วย Recharts
   const createPieChart = () => {
-    const radius = 200 // เพิ่มขนาด radius จาก 80 เป็น 200
-    const centerX = 250 // ปรับ centerX จาก 100 เป็น 250 (ครึ่งหนึ่งของ 500)
-    const centerY = 250 // ปรับ centerY จาก 100 เป็น 250 (ครึ่งหนึ่งของ 500)
-    let currentAngle = 0
+    // แปลงข้อมูลให้เข้ากับ Recharts format
+    const pieData = assetAllocation.map(asset => ({
+      name: asset.type,
+      value: asset.percentage,
+      color: asset.color === 'bg-blue-500' ? '#3b82f6' :
+             asset.color === 'bg-green-500' ? '#10b981' :
+             asset.color === 'bg-yellow-500' ? '#f59e0b' :
+             asset.color === 'bg-purple-500' ? '#8b5cf6' :
+             asset.color === 'bg-red-500' ? '#ef4444' : '#6b7280',
+      amount: asset.value
+    }))
 
-    return assetAllocation.map((asset, index) => {
-      const percentage = asset.percentage
-      const angle = (percentage / 100) * 360
-      const startAngle = currentAngle
-      const endAngle = currentAngle + angle
-      
-      currentAngle = endAngle
-
-      const startX = centerX + radius * Math.cos((startAngle - 90) * Math.PI / 180)
-      const startY = centerY + radius * Math.sin((startAngle - 90) * Math.PI / 180)
-      const endX = centerX + radius * Math.cos((endAngle - 90) * Math.PI / 180)
-      const endY = centerY + radius * Math.sin((endAngle - 90) * Math.PI / 180)
-
-      const largeArcFlag = angle > 180 ? 1 : 0
-
-      const pathData = [
-        `M ${centerX} ${centerY}`,
-        `L ${startX} ${startY}`,
-        `A ${radius} ${radius} 0 ${largeArcFlag} 1 ${endX} ${endY}`,
-        'Z'
-      ].join(' ')
-
-      // แปลงสีจาก Tailwind เป็น hex
-      const getColorHex = (colorClass: string) => {
-        switch (colorClass) {
-          case 'bg-blue-500': return '#3b82f6'
-          case 'bg-green-500': return '#10b981'
-          case 'bg-yellow-500': return '#f59e0b'
-          case 'bg-purple-500': return '#8b5cf6'
-          case 'bg-red-500': return '#ef4444'
-          default: return '#6b7280'
-        }
-      }
-
-      return (
-        <g key={index}>
-          {/* Shadow */}
-          <path
-            d={pathData}
-            fill="rgba(0,0,0,0.1)"
-            transform="translate(4,4)" // เพิ่ม shadow offset จาก 2 เป็น 4
+    return (
+      <div className="w-full h-full flex items-center justify-center">
+        <PieChart width={400} height={400}>
+          <Pie
+            data={pieData}
+            cx={200}
+            cy={200}
+            outerRadius={150}
+            innerRadius={0}
+            paddingAngle={2}
+            dataKey="value"
+          >
+            {pieData.map((entry, index) => (
+              <Cell 
+                key={`cell-${index}`} 
+                fill={entry.color}
+                stroke="white"
+                strokeWidth={3}
+              />
+            ))}
+          </Pie>
+          <Tooltip
+            formatter={(value: any, name: any, props: any) => [
+              `${props.payload.name}: ${value}% (฿${props.payload.amount?.toLocaleString()})`,
+              'สัดส่วน'
+            ]}
+            contentStyle={{
+              backgroundColor: 'rgba(255, 255, 255, 0.95)',
+              border: '1px solid #e5e7eb',
+              borderRadius: '8px',
+              boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+              padding: '8px 12px'
+            }}
           />
-          {/* Main slice */}
-          <path
-            d={pathData}
-            fill={getColorHex(asset.color)}
-            className="hover:opacity-80 transition-all duration-300 cursor-pointer drop-shadow-lg"
-            stroke="white"
-            strokeWidth="4"
-            onMouseEnter={(e) => handleMouseEnter(e, asset)}
-            onMouseLeave={handleMouseLeave}
-          />
-        </g>
-      )
-    })
+        </PieChart>
+      </div>
+    )
   }
 
   // สร้าง Line Chart ด้วย Recharts
@@ -294,40 +250,7 @@ export default function InvestmentPortfolioPage() {
 
   return (
     <div className="space-y-6">
-      {/* CSS for tooltips */}
-      <style>{`
-        .tooltip {
-          position: fixed;
-          background: rgba(0, 0, 0, 0.9);
-          color: white;
-          padding: 8px 12px;
-          border-radius: 6px;
-          font-size: 12px;
-          white-space: nowrap;
-          z-index: 1000;
-          pointer-events: none;
-          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-          opacity: 0;
-          transition: opacity 0.2s ease;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-          transform: translateX(-50%);
-        }
-        .tooltip.show {
-          opacity: 1;
-        }
-        .tooltip::after {
-          content: '';
-          position: absolute;
-          top: 100%;
-          left: 50%;
-          transform: translateX(-50%);
-          border: 5px solid transparent;
-          border-top-color: rgba(0, 0, 0, 0.9);
-        }
-        .pie-chart-container {
-          position: relative;
-        }
-      `}</style>
+
 
       {/* Header with Add Button */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
@@ -405,27 +328,9 @@ export default function InvestmentPortfolioPage() {
                 <div className="card">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Asset Allocation Pie Chart</h3>
           <div className="h-[500px] flex items-center justify-center">
-            <div 
-              className="relative flex items-center justify-center w-full pie-chart-container"
-              onMouseMove={handleMouseMove}
-            >
-              {/* Pie Chart SVG */}
-              <svg width="500" height="500" className="mx-auto">
-                {createPieChart()}
-              </svg>
-              
-              {/* Tooltip */}
-              {tooltip.show && (
-                <div 
-                  className="tooltip show"
-                  style={{
-                    left: tooltip.x,
-                    top: tooltip.y
-                  }}
-                >
-                  {tooltip.text}
-                </div>
-              )}
+            <div className="relative flex items-center justify-center w-full">
+              {/* Pie Chart */}
+              {createPieChart()}
             </div>
           </div>
         </div>
