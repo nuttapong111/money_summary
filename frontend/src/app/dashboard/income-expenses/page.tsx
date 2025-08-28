@@ -1,12 +1,22 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   BanknotesIcon, PlusIcon, FunnelIcon, CalendarIcon,
   ChartBarIcon, ArrowTrendingUpIcon, ArrowTrendingDownIcon,
   XMarkIcon, PencilIcon, TrashIcon, ChevronLeftIcon, ChevronRightIcon,
-  CogIcon
+  CogIcon, ExclamationTriangleIcon, CheckCircleIcon
 } from '@heroicons/react/24/outline'
+
+// กำหนดโครงสร้างหมวดหมู่จากแผนการเงิน
+interface FinancialCategory {
+  id: string
+  name: string
+  percentage: number
+  amount: number
+  color: string
+  description: string
+}
 
 interface Transaction {
   id: string
@@ -31,6 +41,8 @@ interface MonthlyBudget {
   spent: number
   remaining: number
   status: 'under' | 'over' | 'warning'
+  linkedToFinancialPlan: boolean
+  financialPlanCategory?: string // เพิ่มฟิลด์ใหม่
 }
 
 interface FinancialGoal {
@@ -52,6 +64,10 @@ export default function IncomeExpensesPage() {
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage] = useState(10)
   
+  // เพิ่ม state สำหรับแผนการเงิน
+  const [financialPlanCategories, setFinancialPlanCategories] = useState<FinancialCategory[]>([])
+  const [monthlyIncome, setMonthlyIncome] = useState(50000)
+  
   const [filters, setFilters] = useState({
     type: 'all',
     category: 'all',
@@ -70,16 +86,16 @@ export default function IncomeExpensesPage() {
     isRecurring: false
   })
 
-  // Monthly budget settings
+  // Monthly budget settings - ปรับปรุงให้เชื่อมโยงกับแผนการเงิน
   const [monthlyBudgets, setMonthlyBudgets] = useState<MonthlyBudget[]>([
-    { category: 'ค่าอาหาร', budget: 15000, spent: 8000, remaining: 7000, status: 'under' },
-    { category: 'ค่าที่พัก', budget: 20000, spent: 15000, remaining: 5000, status: 'under' },
-    { category: 'ค่าขนส่ง', budget: 5000, spent: 3000, remaining: 2000, status: 'under' },
-    { category: 'ค่าไฟฟ้า', budget: 3000, spent: 2500, remaining: 500, status: 'warning' },
-    { category: 'ค่าน้ำ', budget: 1000, spent: 800, remaining: 200, status: 'under' },
-    { category: 'ค่าโทรศัพท์', budget: 1500, spent: 1200, remaining: 300, status: 'under' },
-    { category: 'ค่าอินเทอร์เน็ต', budget: 1000, spent: 800, remaining: 200, status: 'under' },
-    { category: 'ค่าสันทนาการ', budget: 8000, spent: 5000, remaining: 3000, status: 'under' }
+    { category: 'ค่าอาหาร', budget: 15000, spent: 8000, remaining: 7000, status: 'under', linkedToFinancialPlan: false },
+    { category: 'ค่าที่พัก', budget: 20000, spent: 15000, remaining: 5000, status: 'under', linkedToFinancialPlan: false },
+    { category: 'ค่าขนส่ง', budget: 5000, spent: 3000, remaining: 2000, status: 'under', linkedToFinancialPlan: false },
+    { category: 'ค่าไฟฟ้า', budget: 3000, spent: 2500, remaining: 500, status: 'warning', linkedToFinancialPlan: false },
+    { category: 'ค่าน้ำ', budget: 1000, spent: 800, remaining: 200, status: 'under', linkedToFinancialPlan: false },
+    { category: 'ค่าโทรศัพท์', budget: 1500, spent: 1200, remaining: 300, status: 'under', linkedToFinancialPlan: false },
+    { category: 'ค่าอินเทอร์เน็ต', budget: 1000, spent: 800, remaining: 200, status: 'under', linkedToFinancialPlan: false },
+    { category: 'ค่าสันทนาการ', budget: 8000, spent: 5000, remaining: 3000, status: 'under', linkedToFinancialPlan: false }
   ])
 
   // Monthly data for charts
@@ -104,8 +120,72 @@ export default function IncomeExpensesPage() {
   const [newBudget, setNewBudget] = useState({
     category: '',
     budget: '',
-    spent: ''
+    spent: '',
+    linkedToFinancialPlan: false,
+    financialPlanCategory: ''
   })
+
+  // เพิ่มฟังก์ชันสำหรับโหลดข้อมูลแผนการเงิน
+  useEffect(() => {
+    loadFinancialPlanData()
+  }, [])
+
+  const loadFinancialPlanData = () => {
+    // Mock data - ในอนาคตจะดึงจาก API หรือ localStorage
+    const mockFinancialPlan = [
+      {
+        id: '1',
+        name: 'ความต้องการจำเป็น',
+        percentage: 50,
+        amount: monthlyIncome * 0.5,
+        color: '#EF4444',
+        description: 'ค่าผ่อนรถ, ค่าบ้าน, อาหาร, ค่าสาธารณูปโภค'
+      },
+      {
+        id: '2',
+        name: 'ความต้องการ',
+        percentage: 30,
+        amount: monthlyIncome * 0.3,
+        color: '#F59E0B',
+        description: 'บันเทิง, ช้อปปิ้ง, ท่องเที่ยว, งานอดิเรก'
+      },
+      {
+        id: '3',
+        name: 'การออมและลงทุน',
+        percentage: 20,
+        amount: monthlyIncome * 0.2,
+        color: '#3B82F6',
+        description: 'เงินออม, ลงทุน, เงินฉุกเฉิน, ประกัน'
+      }
+    ]
+    
+    setFinancialPlanCategories(mockFinancialPlan)
+  }
+
+  // ฟังก์ชันตรวจสอบยอดรวมไม่เกินที่ตั้งไว้
+  const checkBudgetLimit = (category: string, newBudget: number): boolean => {
+    const financialCategory = financialPlanCategories.find(cat => cat.name === category)
+    if (!financialCategory) return true // ถ้าไม่ใช่หมวดหมู่จากแผนการเงิน ให้ผ่าน
+    
+    const totalBudgetForCategory = monthlyBudgets
+      .filter(budget => budget.linkedToFinancialPlan && budget.financialPlanCategory === category)
+      .reduce((sum, budget) => sum + budget.budget, 0)
+    
+    const newTotal = totalBudgetForCategory + newBudget
+    return newTotal <= financialCategory.amount
+  }
+
+  // ฟังก์ชันคำนวณยอดคงเหลือจากแผนการเงิน
+  const getRemainingFromFinancialPlan = (category: string): number => {
+    const financialCategory = financialPlanCategories.find(cat => cat.name === category)
+    if (!financialCategory) return 0
+    
+    const totalBudgetForCategory = monthlyBudgets
+      .filter(budget => budget.linkedToFinancialPlan && budget.financialPlanCategory === category)
+      .reduce((sum, budget) => sum + budget.budget, 0)
+    
+    return financialCategory.amount - totalBudgetForCategory
+  }
 
   // Financial Goals states
   const [showFinancialGoals, setShowFinancialGoals] = useState(false)
@@ -536,21 +616,45 @@ export default function IncomeExpensesPage() {
 
   // Budget management functions
   const handleAddBudget = () => {
-    if (newBudget.category && newBudget.budget) {
+    if ((newBudget.linkedToFinancialPlan && newBudget.financialPlanCategory) || (!newBudget.linkedToFinancialPlan && newBudget.category)) {
+      if (!newBudget.budget) {
+        alert('กรุณากรอกงบประมาณ')
+        return
+      }
+
       const budget = parseFloat(newBudget.budget)
       const spent = parseFloat(newBudget.spent) || 0
       const remaining = budget - spent
       
+      // ตรวจสอบว่างบประมาณไม่เกินที่ตั้งไว้ในแผนการเงิน
+      if (newBudget.linkedToFinancialPlan && newBudget.financialPlanCategory) {
+        const selectedCategory = financialPlanCategories.find(cat => cat.name === newBudget.financialPlanCategory)
+        if (selectedCategory) {
+          const totalBudgetForCategory = monthlyBudgets
+            .filter(b => b.linkedToFinancialPlan && b.financialPlanCategory === newBudget.financialPlanCategory)
+            .reduce((sum, b) => sum + b.budget, 0)
+          
+          if (totalBudgetForCategory + budget > selectedCategory.amount) {
+            alert(`งบประมาณรวมจะเกินที่ตั้งไว้ในแผนการเงิน (${(totalBudgetForCategory + budget).toLocaleString()} > ${selectedCategory.amount.toLocaleString()})`)
+            return
+          }
+        }
+      }
+      
       setMonthlyBudgets(prev => [...prev, {
-        category: newBudget.category,
+        category: newBudget.linkedToFinancialPlan ? newBudget.financialPlanCategory! : newBudget.category,
         budget,
         spent,
         remaining,
-        status: remaining < 0 ? 'over' : remaining < budget * 0.2 ? 'warning' : 'under'
+        status: remaining < 0 ? 'over' : remaining < budget * 0.2 ? 'warning' : 'under',
+        linkedToFinancialPlan: newBudget.linkedToFinancialPlan,
+        financialPlanCategory: newBudget.financialPlanCategory
       }])
       
-      setNewBudget({ category: '', budget: '', spent: '' })
+      setNewBudget({ category: '', budget: '', spent: '', linkedToFinancialPlan: false, financialPlanCategory: '' })
       setShowAddBudget(false)
+    } else {
+      alert('กรุณาเลือกหมวดหมู่หรือเชื่อมโยงกับแผนการเงิน')
     }
   }
 
@@ -559,7 +663,9 @@ export default function IncomeExpensesPage() {
     setNewBudget({
       category: budget.category,
       budget: budget.budget.toString(),
-      spent: budget.spent.toString()
+      spent: budget.spent.toString(),
+      linkedToFinancialPlan: budget.linkedToFinancialPlan,
+      financialPlanCategory: budget.financialPlanCategory || ''
     })
     setShowAddBudget(true)
   }
@@ -572,11 +678,11 @@ export default function IncomeExpensesPage() {
       
       setMonthlyBudgets(prev => prev.map(b => 
         b.category === editingBudget.category 
-          ? { ...b, budget, spent, remaining, status: remaining < 0 ? 'over' : remaining < budget * 0.2 ? 'warning' : 'under' }
+          ? { ...b, budget, spent, remaining, status: remaining < 0 ? 'over' : remaining < budget * 0.2 ? 'warning' : 'under', linkedToFinancialPlan: newBudget.linkedToFinancialPlan, financialPlanCategory: newBudget.financialPlanCategory }
           : b
       ))
       
-      setNewBudget({ category: '', budget: '', spent: '' })
+      setNewBudget({ category: '', budget: '', spent: '', linkedToFinancialPlan: false, financialPlanCategory: '' })
       setEditingBudget(null)
       setShowAddBudget(false)
     }
@@ -1293,7 +1399,47 @@ export default function IncomeExpensesPage() {
                       <TrashIcon className="w-4 h-4" />
                     </button>
                   </div>
+                  
+                  {/* แสดงสถานะการเชื่อมโยงกับแผนการเงิน */}
+                  {budget.linkedToFinancialPlan && (
+                    <div className="absolute top-2 left-2">
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                        📊 แผนการเงิน
+                      </span>
+                    </div>
+                  )}
+                  
                   <h3 className="font-medium text-gray-900 mb-2 pr-16">{budget.category}</h3>
+                  
+                  {/* แสดงข้อมูลจากแผนการเงิน */}
+                  {budget.linkedToFinancialPlan && budget.financialPlanCategory && (
+                    <div className="mb-3 p-2 bg-blue-50 rounded border border-blue-200">
+                      <div className="text-xs text-blue-800">
+                        <div className="font-medium">เชื่อมโยงกับ: {budget.financialPlanCategory}</div>
+                        {(() => {
+                          const financialCategory = financialPlanCategories.find(cat => cat.name === budget.financialPlanCategory)
+                          if (!financialCategory) return null
+                          
+                          const totalBudgetForCategory = monthlyBudgets
+                            .filter(b => b.linkedToFinancialPlan && b.financialPlanCategory === budget.financialPlanCategory)
+                            .reduce((sum, b) => sum + b.budget, 0)
+                          
+                          const remainingFromPlan = financialCategory.amount - totalBudgetForCategory
+                          
+                          return (
+                            <div className="mt-1 space-y-1">
+                              <div>งบประมาณจากแผน: ฿{financialCategory.amount.toLocaleString()}</div>
+                              <div>ใช้ไปแล้ว: ฿{totalBudgetForCategory.toLocaleString()}</div>
+                              <div className={`font-medium ${remainingFromPlan >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                เหลือจากแผน: ฿{remainingFromPlan.toLocaleString()}
+                              </div>
+                            </div>
+                          )
+                        })()}
+                      </div>
+                    </div>
+                  )}
+                  
                   <div className="space-y-2">
                     <div className="flex justify-between">
                       <span className="text-sm text-gray-600">งบประมาณ:</span>
@@ -1350,7 +1496,7 @@ export default function IncomeExpensesPage() {
                 onClick={() => {
                   setShowAddBudget(false)
                   setEditingBudget(null)
-                  setNewBudget({ category: '', budget: '', spent: '' })
+                  setNewBudget({ category: '', budget: '', spent: '', linkedToFinancialPlan: false, financialPlanCategory: '' })
                 }}
                 className="text-gray-400 hover:text-gray-600"
               >
@@ -1359,16 +1505,89 @@ export default function IncomeExpensesPage() {
             </div>
             
             <div className="space-y-4">
+              {/* เลือกหมวดหมู่จากแผนการเงิน */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">ชื่อหมวดหมู่</label>
-                <input
-                  type="text"
-                  value={newBudget.category}
-                  onChange={(e) => setNewBudget(prev => ({ ...prev, category: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="เช่น ค่าอาหาร"
-                />
+                <label className="block text-sm font-medium text-gray-700 mb-1">เชื่อมโยงกับแผนการเงิน</label>
+                <div className="flex items-center space-x-3">
+                  <input
+                    type="checkbox"
+                    id="linkToFinancialPlan"
+                    checked={newBudget.linkedToFinancialPlan}
+                    onChange={(e) => setNewBudget(prev => ({ 
+                      ...prev, 
+                      linkedToFinancialPlan: e.target.checked,
+                      financialPlanCategory: e.target.checked ? prev.financialPlanCategory : ''
+                    }))}
+                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  />
+                  <label htmlFor="linkToFinancialPlan" className="text-sm text-gray-700">
+                    เชื่อมโยงกับหมวดหมู่จากแผนการเงินรายเดือน
+                  </label>
+                </div>
               </div>
+
+              {/* Dropdown เลือกหมวดหมู่จากแผนการเงิน */}
+              {newBudget.linkedToFinancialPlan && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">หมวดหมู่จากแผนการเงิน</label>
+                  <select
+                    value={newBudget.financialPlanCategory}
+                    onChange={(e) => setNewBudget(prev => ({ ...prev, financialPlanCategory: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="">เลือกหมวดหมู่จากแผนการเงิน</option>
+                    {financialPlanCategories.map((category) => (
+                      <option key={category.id} value={category.name}>
+                        {category.name} ({category.percentage}% - ฿{category.amount.toLocaleString()})
+                      </option>
+                    ))}
+                  </select>
+                  
+                  {/* แสดงข้อมูลหมวดหมู่ที่เลือก */}
+                  {newBudget.financialPlanCategory && (
+                    <div className="mt-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                      <div className="text-sm text-blue-800">
+                        <strong>ข้อมูลหมวดหมู่:</strong>
+                        {(() => {
+                          const selectedCategory = financialPlanCategories.find(cat => cat.name === newBudget.financialPlanCategory)
+                          if (!selectedCategory) return null
+                          
+                          const totalBudgetForCategory = monthlyBudgets
+                            .filter(budget => budget.linkedToFinancialPlan && budget.financialPlanCategory === newBudget.financialPlanCategory)
+                            .reduce((sum, budget) => sum + budget.budget, 0)
+                          
+                          const remaining = selectedCategory.amount - totalBudgetForCategory
+                          
+                          return (
+                            <div className="mt-2 space-y-1">
+                              <div>งบประมาณรวม: ฿{selectedCategory.amount.toLocaleString()}</div>
+                              <div>ใช้ไปแล้ว: ฿{totalBudgetForCategory.toLocaleString()}</div>
+                              <div className={`font-medium ${remaining >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                เหลือ: ฿{remaining.toLocaleString()}
+                              </div>
+                            </div>
+                          )
+                        })()}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* ชื่อหมวดหมู่ (ถ้าไม่เชื่อมโยงกับแผนการเงิน) */}
+              {!newBudget.linkedToFinancialPlan && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">ชื่อหมวดหมู่</label>
+                  <input
+                    type="text"
+                    value={newBudget.category}
+                    onChange={(e) => setNewBudget(prev => ({ ...prev, category: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="เช่น ค่าอาหาร"
+                  />
+                </div>
+              )}
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">งบประมาณ (บาท)</label>
                 <input
@@ -1378,7 +1597,45 @@ export default function IncomeExpensesPage() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   placeholder="0"
                 />
+                
+                {/* แจ้งเตือนเมื่องบประมาณเกินที่ตั้งไว้ */}
+                {newBudget.linkedToFinancialPlan && newBudget.financialPlanCategory && newBudget.budget && (
+                  (() => {
+                    const selectedCategory = financialPlanCategories.find(cat => cat.name === newBudget.financialPlanCategory)
+                    if (!selectedCategory) return null
+                    
+                    const totalBudgetForCategory = monthlyBudgets
+                      .filter(budget => budget.linkedToFinancialPlan && budget.financialPlanCategory === newBudget.financialPlanCategory)
+                      .reduce((sum, budget) => sum + budget.budget, 0)
+                    
+                    const newTotal = totalBudgetForCategory + parseFloat(newBudget.budget || '0')
+                    const isOverLimit = newTotal > selectedCategory.amount
+                    
+                    return (
+                      <div className={`mt-2 p-2 rounded-lg border ${
+                        isOverLimit ? 'bg-red-50 border-red-200' : 'bg-green-50 border-green-200'
+                      }`}>
+                        <div className={`text-sm ${isOverLimit ? 'text-red-800' : 'text-green-800'}`}>
+                          <div className="flex items-center space-x-2">
+                            {isOverLimit ? (
+                              <ExclamationTriangleIcon className="w-4 h-4 text-red-600" />
+                            ) : (
+                              <CheckCircleIcon className="w-4 h-4 text-green-600" />
+                            )}
+                            <span>
+                              {isOverLimit 
+                                ? `⚠️ งบประมาณรวมจะเกินที่ตั้งไว้ (${newTotal.toLocaleString()} > ${selectedCategory.amount.toLocaleString()})`
+                                : `✅ งบประมาณรวมอยู่ในขอบเขตที่กำหนด (${newTotal.toLocaleString()} ≤ ${selectedCategory.amount.toLocaleString()})`
+                              }
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })()
+                )}
               </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">ใช้ไปแล้ว (บาท)</label>
                 <input
@@ -1396,7 +1653,7 @@ export default function IncomeExpensesPage() {
                 onClick={() => {
                   setShowAddBudget(false)
                   setEditingBudget(null)
-                  setNewBudget({ category: '', budget: '', spent: '' })
+                  setNewBudget({ category: '', budget: '', spent: '', linkedToFinancialPlan: false, financialPlanCategory: '' })
                 }}
                 className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
               >

@@ -38,6 +38,13 @@ export default function InvestmentPortfolioPage() {
     stockName: ''
   })
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [filterType, setFilterType] = useState('all')
+  const [filterRisk, setFilterRisk] = useState('all')
+
   useEffect(() => {
     setMounted(true)
   }, [])
@@ -56,8 +63,55 @@ export default function InvestmentPortfolioPage() {
     { name: 'กองทุนรวม', value: 80000, change: -2.1, type: 'fund', allocation: 15, risk: 'low' },
     { name: 'ทองคำ', value: 45000, change: 8.7, type: 'gold', allocation: 10, risk: 'low' },
     { name: 'พันธบัตรรัฐบาล', value: 120000, change: 3.1, type: 'bond', allocation: 20, risk: 'very-low' },
-    { name: 'อสังหาฯ', value: 800000, change: 6.8, type: 'realestate', allocation: 30, risk: 'high' }
+    { name: 'อสังหาฯ', value: 800000, change: 6.8, type: 'realestate', allocation: 30, risk: 'high' },
+    { name: 'หุ้น PTT', value: 95000, change: 4.3, type: 'stock', allocation: 18, risk: 'medium' },
+    { name: 'หุ้น SCB', value: 125000, change: -1.8, type: 'stock', allocation: 22, risk: 'medium' },
+    { name: 'หุ้น AOT', value: 75000, change: 7.2, type: 'stock', allocation: 14, risk: 'medium' },
+    { name: 'กองทุนรวมหุ้นไทย', value: 65000, change: 3.9, type: 'fund', allocation: 12, risk: 'medium' },
+    { name: 'กองทุนรวมพันธบัตร', value: 55000, change: 2.1, type: 'fund', allocation: 10, risk: 'very-low' },
+    { name: 'หุ้น CP', value: 110000, change: 6.5, type: 'stock', allocation: 20, risk: 'medium' },
+    { name: 'หุ้น BBL', value: 85000, change: -0.8, type: 'stock', allocation: 16, risk: 'medium' },
+    { name: 'หุ้น KBANK', value: 135000, change: 4.7, type: 'stock', allocation: 24, risk: 'medium' },
+    { name: 'หุ้น TRUE', value: 70000, change: 8.9, type: 'stock', allocation: 13, risk: 'high' },
+    { name: 'หุ้น ADVANC', value: 90000, change: 2.3, type: 'stock', allocation: 17, risk: 'medium' },
+    { name: 'หุ้น BDMS', value: 115000, change: 5.8, type: 'stock', allocation: 21, risk: 'medium' },
+    { name: 'หุ้น CPALL', value: 105000, change: 3.4, type: 'stock', allocation: 19, risk: 'medium' },
+    { name: 'หุ้น DTAC', value: 80000, change: 1.7, type: 'stock', allocation: 15, risk: 'medium' },
+    { name: 'หุ้น EGAT', value: 95000, change: 4.2, type: 'stock', allocation: 18, risk: 'medium' },
+    { name: 'หุ้น GULF', value: 125000, change: 6.1, type: 'stock', allocation: 22, risk: 'high' },
+    { name: 'หุ้น INTUCH', value: 110000, change: 2.8, type: 'stock', allocation: 20, risk: 'medium' }
   ])
+
+  // Filtered and paginated investments
+  const filteredInvestments = investments.filter(investment => {
+    const matchesSearch = investment.name.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesType = filterType === 'all' || investment.type === filterType
+    const matchesRisk = filterRisk === 'all' || investment.risk === filterRisk
+    return matchesSearch && matchesType && matchesRisk
+  })
+
+  const totalPages = Math.ceil(filteredInvestments.length / pageSize)
+  const startIndex = (currentPage - 1) * pageSize
+  const endIndex = startIndex + pageSize
+  const currentInvestments = filteredInvestments.slice(startIndex, endIndex)
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page)
+  }
+
+  const handlePageSizeChange = (size: number) => {
+    setPageSize(size)
+    setCurrentPage(1)
+  }
+
+  const handleSearch = (value: string) => {
+    setSearchTerm(value)
+    setCurrentPage(1)
+  }
+
+  const handleFilterChange = () => {
+    setCurrentPage(1)
+  }
 
   const assetAllocation = [
     { type: 'หุ้น', percentage: 25, color: 'bg-blue-500', value: 150000 },
@@ -496,40 +550,231 @@ export default function InvestmentPortfolioPage() {
         </div>
       </div>
 
-      {/* Investment Details */}
+      {/* Investment Categories */}
       <div className="card">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">รายละเอียดการลงทุน</h3>
-        <div className="space-y-4">
-          {investments.map((investment, index) => (
-            <div key={index} className="border border-gray-200 rounded-lg p-4">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center space-x-3">
-                  <h4 className="font-medium text-gray-900">{investment.name}</h4>
-                  <span className={`px-2 py-1 text-xs rounded-full ${getRiskColor(investment.risk)}`}>
-                    {getRiskText(investment.risk)}
-                  </span>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* หุ้นไทย */}
+          <div className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-lg transition-shadow">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <ChartBarIcon className="w-6 h-6 text-blue-600" />
                 </div>
-                <div className="text-right">
-                  <span className={`text-lg font-semibold ${
-                    investment.change >= 0 ? 'text-green-600' : 'text-red-600'
-                  }`}>
-                    {investment.change >= 0 ? '+' : ''}{investment.change}%
-                  </span>
-                  <p className="text-sm text-gray-500">฿{investment.value.toLocaleString()}</p>
+                <div>
+                  <h4 className="text-lg font-semibold text-gray-900">หุ้นไทย</h4>
+                  <p className="text-sm text-gray-600">หุ้นในตลาดหลักทรัพย์ไทย SET, MAI</p>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <span className="text-gray-600">ประเภท:</span>
-                  <span className="font-medium ml-2">{investment.type}</span>
-                </div>
-                <div>
-                  <span className="text-gray-600">สัดส่วน:</span>
-                  <span className="font-medium ml-2">{investment.allocation}%</span>
-                </div>
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                ปานกลาง
+              </span>
+            </div>
+            
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">สัดส่วน:</span>
+                <span className="text-sm font-medium text-gray-900">45%</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">ผลตอบแทน:</span>
+                <span className="text-sm font-medium text-green-600">+4.8%</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">มูลค่า:</span>
+                <span className="text-lg font-bold text-gray-900">฿1,235,000</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">จำนวนรายการ:</span>
+                <span className="text-sm font-medium text-gray-900">15 รายการ</span>
               </div>
             </div>
-          ))}
+          </div>
+
+          {/* กองทุนรวม */}
+          <div className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-lg transition-shadow">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                  <BuildingOfficeIcon className="w-6 h-6 text-green-600" />
+                </div>
+                <div>
+                  <h4 className="text-lg font-semibold text-gray-900">กองทุนรวม</h4>
+                  <p className="text-sm text-gray-600">กองทุนรวมในประเทศไทยและต่างประเทศ</p>
+                </div>
+              </div>
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                ต่ำ
+              </span>
+            </div>
+            
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">สัดส่วน:</span>
+                <span className="text-sm font-medium text-gray-900">25%</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">ผลตอบแทน:</span>
+                <span className="text-sm font-medium text-green-600">+2.1%</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">มูลค่า:</span>
+                <span className="text-lg font-bold text-gray-900">฿687,500</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">จำนวนรายการ:</span>
+                <span className="text-sm font-medium text-gray-900">4 รายการ</span>
+              </div>
+            </div>
+          </div>
+
+          {/* พันธบัตร */}
+          <div className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-lg transition-shadow">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                  <CurrencyDollarIcon className="w-6 h-6 text-purple-600" />
+                </div>
+                <div>
+                  <h4 className="text-lg font-semibold text-gray-900">พันธบัตร</h4>
+                  <p className="text-sm text-gray-600">พันธบัตรรัฐบาลและเอกชน</p>
+                </div>
+              </div>
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                ต่ำมาก
+              </span>
+            </div>
+            
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">สัดส่วน:</span>
+                <span className="text-sm font-medium text-gray-900">20%</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">ผลตอบแทน:</span>
+                <span className="text-sm font-medium text-green-600">+3.1%</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">มูลค่า:</span>
+                <span className="text-lg font-bold text-gray-900">฿550,000</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">จำนวนรายการ:</span>
+                <span className="text-sm font-medium text-gray-900">2 รายการ</span>
+              </div>
+            </div>
+          </div>
+
+          {/* ทองคำ */}
+          <div className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-lg transition-shadow">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
+                  <ChartPieIcon className="w-6 h-6 text-yellow-600" />
+                </div>
+                <div>
+                  <h4 className="text-lg font-semibold text-gray-900">ทองคำ</h4>
+                  <p className="text-sm text-gray-600">สินค้าโภคภัณฑ์และโลหะมีค่า</p>
+                </div>
+              </div>
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                ต่ำ
+              </span>
+            </div>
+            
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">สัดส่วน:</span>
+                <span className="text-sm font-medium text-gray-900">10%</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">ผลตอบแทน:</span>
+                <span className="text-sm font-medium text-green-600">+8.7%</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">มูลค่า:</span>
+                <span className="text-lg font-bold text-gray-900">฿275,000</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">จำนวนรายการ:</span>
+                <span className="text-sm font-medium text-gray-900">1 รายการ</span>
+              </div>
+            </div>
+          </div>
+
+          {/* อสังหาฯ */}
+          <div className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-lg transition-shadow">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
+                  <BuildingOfficeIcon className="w-6 h-6 text-red-600" />
+                </div>
+                <div>
+                  <h4 className="text-lg font-semibold text-gray-900">อสังหาฯ</h4>
+                  <p className="text-sm text-gray-600">อสังหาริมทรัพย์และ REITs</p>
+                </div>
+              </div>
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                สูง
+              </span>
+            </div>
+            
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">สัดส่วน:</span>
+                <span className="text-sm font-medium text-gray-900">30%</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">ผลตอบแทน:</span>
+                <span className="text-sm font-medium text-green-600">+6.8%</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">มูลค่า:</span>
+                <span className="text-lg font-bold text-gray-900">฿825,000</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">จำนวนรายการ:</span>
+                <span className="text-sm font-medium text-gray-900">3 รายการ</span>
+              </div>
+            </div>
+          </div>
+
+          {/* ETF */}
+          <div className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-lg transition-shadow">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
+                  <ChartBarIcon className="w-6 h-6 text-indigo-600" />
+                </div>
+                <div>
+                  <h4 className="text-lg font-semibold text-gray-900">ETF</h4>
+                  <p className="text-sm text-gray-600">Exchange Traded Funds</p>
+                </div>
+              </div>
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                ปานกลาง
+              </span>
+            </div>
+            
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">สัดส่วน:</span>
+                <span className="text-sm font-medium text-gray-900">15%</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">ผลตอบแทน:</span>
+                <span className="text-sm font-medium text-green-600">+5.2%</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">มูลค่า:</span>
+                <span className="text-lg font-bold text-gray-900">฿412,500</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">จำนวนรายการ:</span>
+                <span className="text-sm font-medium text-gray-900">2 รายการ</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -583,6 +828,189 @@ export default function InvestmentPortfolioPage() {
                 <h5 className="font-medium text-green-900 mb-2">โอกาสการลงทุน</h5>
                 <p className="text-sm text-green-700">หุ้น SET50 ปรับตัวลง 5% เหมาะสำหรับการซื้อเพิ่ม (DCA)</p>
               </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* All Investments List */}
+      <div className="card">
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-lg font-semibold text-gray-900 flex items-center space-x-2">
+            <ChartBarIcon className="w-5 h-5 text-primary-600" />
+            <span>รายการการลงทุนทั้งหมด</span>
+          </h3>
+          <Button
+            type="primary"
+            icon={<PlusIcon className="w-4 h-4" />}
+            onClick={() => setShowAddForm(true)}
+            className="bg-primary-600 hover:bg-primary-700"
+          >
+            เพิ่มการลงทุน
+          </Button>
+        </div>
+
+        {/* Search and Filters */}
+        <div className="flex flex-col md:flex-row gap-4 mb-6">
+          <div className="flex-1">
+            <Input
+              placeholder="ค้นหาการลงทุน..."
+              prefix={<SearchOutlined />}
+              value={searchTerm}
+              onChange={(e) => handleSearch(e.target.value)}
+              className="max-w-md"
+            />
+          </div>
+          <div className="flex gap-2">
+            <Select
+              value={filterType}
+              onChange={(value) => {
+                setFilterType(value)
+                handleFilterChange()
+              }}
+              className="w-32"
+              placeholder="ประเภท"
+            >
+              <Select.Option value="all">ทุกประเภท</Select.Option>
+              {investmentTypes.map(type => (
+                <Select.Option key={type.value} value={type.value}>{type.label}</Select.Option>
+              ))}
+            </Select>
+            <Select
+              value={filterRisk}
+              onChange={(value) => {
+                setFilterRisk(value)
+                handleFilterChange()
+              }}
+              className="w-32"
+              placeholder="ความเสี่ยง"
+            >
+              <Select.Option value="all">ทุกระดับ</Select.Option>
+              {riskLevels.map(risk => (
+                <Select.Option key={risk.value} value={risk.value}>{risk.label}</Select.Option>
+              ))}
+            </Select>
+          </div>
+        </div>
+
+        {/* Investments Table */}
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  การลงทุน
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  ประเภท
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  มูลค่า (บาท)
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  สัดส่วน
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  ผลตอบแทน
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  ความเสี่ยง
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {currentInvestments.map((investment, index) => (
+                <tr key={index} className="hover:bg-gray-50">
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm font-medium text-gray-900">{investment.name}</div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                      {investmentTypes.find(t => t.value === investment.type)?.label || investment.type}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    ฿{investment.value.toLocaleString()}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {investment.allocation}%
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`text-sm font-medium ${
+                      investment.change >= 0 ? 'text-green-600' : 'text-red-600'
+                    }`}>
+                      {investment.change >= 0 ? '+' : ''}{investment.change}%
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                      investment.risk === 'very-low' ? 'bg-green-100 text-green-800' :
+                      investment.risk === 'low' ? 'bg-blue-100 text-blue-800' :
+                      investment.risk === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                      'bg-red-100 text-red-800'
+                    }`}>
+                      {riskLevels.find(r => r.value === investment.risk)?.label || investment.risk}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Pagination */}
+        <div className="flex items-center justify-between mt-6">
+          <div className="flex items-center space-x-2">
+            <span className="text-sm text-gray-700">แสดง</span>
+            <Select
+              value={pageSize}
+              onChange={handlePageSizeChange}
+              className="w-20"
+            >
+              <Select.Option value={5}>5</Select.Option>
+              <Select.Option value={10}>10</Select.Option>
+              <Select.Option value={20}>20</Select.Option>
+              <Select.Option value={50}>50</Select.Option>
+            </Select>
+            <span className="text-sm text-gray-700">รายการต่อหน้า</span>
+          </div>
+          
+          <div className="flex items-center space-x-2">
+            <span className="text-sm text-gray-700">
+              แสดง {startIndex + 1}-{Math.min(endIndex, filteredInvestments.length)} จาก {filteredInvestments.length} รายการ
+            </span>
+            <div className="flex space-x-1">
+              <Button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="px-3 py-1"
+                size="small"
+              >
+                ก่อนหน้า
+              </Button>
+              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                const page = Math.max(1, Math.min(totalPages - 4, currentPage - 2)) + i
+                if (page > totalPages) return null
+                return (
+                  <Button
+                    key={page}
+                    onClick={() => handlePageChange(page)}
+                    type={page === currentPage ? 'primary' : 'default'}
+                    className="px-3 py-1"
+                    size="small"
+                  >
+                    {page}
+                  </Button>
+                )
+              })}
+              <Button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="px-3 py-1"
+                size="small"
+              >
+                ถัดไป
+              </Button>
             </div>
           </div>
         </div>

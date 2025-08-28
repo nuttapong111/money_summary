@@ -16,6 +16,7 @@ import {
 } from '@heroicons/react/24/outline'
 import { DatePicker } from 'antd'
 import dayjs from 'dayjs'
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Area, AreaChart } from 'recharts'
 
 // กำหนดประเภทแผนการเงิน
 type FinancialPlanType = '503020' | '6jars' | 'custom'
@@ -34,6 +35,7 @@ export default function InvestmentPlanningPage() {
   const [mounted, setMounted] = useState(false)
   const [showAddForm, setShowAddForm] = useState(false)
   const [showAllocationForm, setShowAllocationForm] = useState(false)
+  const [showScenarioSettings, setShowScenarioSettings] = useState(false)
   const [editingGoal, setEditingGoal] = useState<any>(null)
   const [selectedPlan, setSelectedPlan] = useState<FinancialPlanType>('503020')
   const [monthlyIncome, setMonthlyIncome] = useState(50000)
@@ -198,6 +200,35 @@ export default function InvestmentPlanningPage() {
     }
   }
 
+  // ฟังก์ชันสร้างข้อมูลกราฟการลงทุน
+  const generateChartData = () => {
+    const data = []
+    
+    for (let year = 0; year <= 20; year++) {
+      const yearData: any = { year: `ปีที่ ${year}` }
+      
+      // คำนวณมูลค่าในอนาคตสำหรับแต่ละแผน
+      investmentScenarios.forEach((scenario, index) => {
+        let futureValue = 0
+        if (year > 0) {
+          // ใช้สูตร compound interest สำหรับการออมต่อเดือน
+          const monthlyRate = scenario.expectedReturn / 12 / 100
+          const totalMonths = year * 12
+          futureValue = scenario.monthlyInvestment * ((Math.pow(1 + monthlyRate, totalMonths) - 1) / monthlyRate)
+        }
+        
+        // กำหนดชื่อคอลัมน์ตามแผน
+        if (index === 0) yearData.conservative = Math.round(futureValue)
+        else if (index === 1) yearData.moderate = Math.round(futureValue)
+        else if (index === 2) yearData.aggressive = Math.round(futureValue)
+      })
+      
+      data.push(yearData)
+    }
+    
+    return data
+  }
+
   // ฟังก์ชันเพิ่มหมวดหมู่ใหม่
   const handleAddCategory = () => {
     if (!newCategory.name || newCategory.percentage <= 0) {
@@ -251,6 +282,31 @@ export default function InvestmentPlanningPage() {
   const totalPercentage = categories.reduce((sum, cat) => sum + cat.percentage, 0)
   const totalAmount = categories.reduce((sum, cat) => sum + cat.amount, 0)
 
+  // Investment Scenarios state
+  const [investmentScenarios, setInvestmentScenarios] = useState([
+    {
+      name: 'Conservative',
+      risk: 'low' as 'low' | 'medium' | 'high',
+      monthlyInvestment: 8000,
+      expectedReturn: 5,
+      projectedValue: 3200000
+    },
+    {
+      name: 'Moderate',
+      risk: 'medium' as 'low' | 'medium' | 'high',
+      monthlyInvestment: 10000,
+      expectedReturn: 8,
+      projectedValue: 4500000
+    },
+    {
+      name: 'Aggressive',
+      risk: 'high' as 'low' | 'medium' | 'high',
+      monthlyInvestment: 12000,
+      expectedReturn: 12,
+      projectedValue: 6500000
+    }
+  ])
+
   // Mock data for financial goals
   const goals = [
     { 
@@ -265,7 +321,7 @@ export default function InvestmentPlanningPage() {
     { 
       name: 'รถยนต์', 
       target: 800000, 
-      current: 300000, 
+      current: 300000,
       deadline: '2024', 
       type: 'short',
       monthlyInvestment: 15000,
@@ -413,29 +469,7 @@ export default function InvestmentPlanningPage() {
     }
   }
 
-  const investmentScenarios = [
-    {
-      name: 'Conservative',
-      monthlyInvestment: 8000,
-      expectedReturn: 5,
-      projectedValue: 3200000,
-      risk: 'low'
-    },
-    {
-      name: 'Moderate',
-      monthlyInvestment: 10000,
-      expectedReturn: 8,
-      projectedValue: 4500000,
-      risk: 'medium'
-    },
-    {
-      name: 'Aggressive',
-      monthlyInvestment: 12000,
-      expectedReturn: 12,
-      projectedValue: 6500000,
-      risk: 'high'
-    }
-  ]
+
 
   const getRiskColor = (risk: string) => {
     switch (risk) {
@@ -516,7 +550,7 @@ export default function InvestmentPlanningPage() {
       `}</style>
 
       {/* Monthly Investment Plan */}
-      <div className="card">
+      {/* <div className="card">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">แผนการลงทุนรายเดือน</h3>
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           <div className="text-center p-4 bg-green-50 rounded-lg">
@@ -540,7 +574,7 @@ export default function InvestmentPlanningPage() {
             <p className="text-xl font-bold text-yellow-600">฿{(monthlyIncome * 0.05).toLocaleString()}</p>
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* 50/30/20 Rule */}
       {/* <div className="card">
@@ -919,46 +953,128 @@ export default function InvestmentPlanningPage() {
 
       {/* Risk Profile Assessment */}
       <div className="card">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">การประเมิน Risk Profile</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <h4 className="font-medium text-gray-700 mb-3">ข้อมูลพื้นฐาน</h4>
-            <div className="space-y-3">
-              <div className="flex justify-between">
-                <span className="text-gray-600">อายุ</span>
-                <span className="font-medium">{riskProfile.age} ปี</span>
+        <h3 className="text-lg font-semibold text-gray-900 mb-6 flex items-center space-x-2">
+          <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+            <ChartBarIcon className="w-5 h-5 text-purple-600" />
+          </div>
+          <span>การประเมิน Risk Profile</span>
+        </h3>
+        
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* ข้อมูลพื้นฐาน */}
+          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200">
+            <h4 className="font-semibold text-blue-900 mb-4 flex items-center space-x-2">
+              <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
+                <span className="text-white text-xs font-bold">i</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">ความเสี่ยงที่ยอมรับได้</span>
-                <span className={`px-2 py-1 text-xs rounded-full ${getRiskColor(riskProfile.riskTolerance)}`}>
+              <span>ข้อมูลพื้นฐาน</span>
+            </h4>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-blue-100">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                    <span className="text-blue-600 font-semibold">👤</span>
+                  </div>
+                  <span className="text-gray-700 font-medium">อายุ</span>
+                </div>
+                <span className="text-2xl font-bold text-blue-600">{riskProfile.age} ปี</span>
+              </div>
+              
+              <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-blue-100">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
+                    <span className="text-orange-600 font-semibold">⚡</span>
+                  </div>
+                  <span className="text-gray-700 font-medium">ความเสี่ยงที่ยอมรับได้</span>
+                </div>
+                <span className={`px-4 py-2 text-sm font-semibold rounded-full ${getRiskColor(riskProfile.riskTolerance)}`}>
                   {getRiskText(riskProfile.riskTolerance)}
                 </span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">ระยะเวลาการลงทุน</span>
-                <span className="font-medium">{riskProfile.investmentHorizon}</span>
+              
+              <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-blue-100">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                    <span className="text-green-600 font-semibold">📅</span>
+                  </div>
+                  <span className="text-gray-700 font-medium">ระยะเวลาการลงทุน</span>
+                </div>
+                <span className="text-lg font-semibold text-green-600">{riskProfile.investmentHorizon}</span>
               </div>
             </div>
           </div>
           
-          <div>
-            <h4 className="font-medium text-gray-700 mb-3">การจัดสรรที่แนะนำ</h4>
-            <div className="space-y-3">
-              <div className="flex justify-between">
-                <span className="text-gray-600">หุ้น</span>
-                <span className="font-medium">{riskProfile.recommendedAllocation.stocks}%</span>
+          {/* การจัดสรรที่แนะนำ */}
+          <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-6 border border-purple-200">
+            <h4 className="font-semibold text-purple-900 mb-4 flex items-center space-x-2">
+              <div className="w-5 h-5 bg-purple-500 rounded-full flex items-center justify-center">
+                <span className="text-white text-xs font-bold">📊</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">พันธบัตร</span>
-                <span className="font-medium">{riskProfile.recommendedAllocation.bonds}%</span>
+              <span>การจัดสรรที่แนะนำ</span>
+            </h4>
+            <div className="space-y-4">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-4 h-4 bg-red-500 rounded-full"></div>
+                    <span className="text-gray-700 font-medium">หุ้น</span>
+                  </div>
+                  <span className="text-lg font-bold text-red-600">{riskProfile.recommendedAllocation.stocks}%</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-3">
+                  <div 
+                    className="bg-red-500 h-3 rounded-full transition-all duration-500"
+                    style={{ width: `${riskProfile.recommendedAllocation.stocks}%` }}
+                  ></div>
+                </div>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">อสังหาริมทรัพย์</span>
-                <span className="font-medium">{riskProfile.recommendedAllocation.realEstate}%</span>
+              
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-4 h-4 bg-blue-500 rounded-full"></div>
+                    <span className="text-gray-700 font-medium">พันธบัตร</span>
+                  </div>
+                  <span className="text-lg font-bold text-blue-600">{riskProfile.recommendedAllocation.bonds}%</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-3">
+                  <div 
+                    className="bg-blue-500 h-3 rounded-full transition-all duration-500"
+                    style={{ width: `${riskProfile.recommendedAllocation.bonds}%` }}
+                  ></div>
+                </div>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">เงินสด</span>
-                <span className="font-medium">{riskProfile.recommendedAllocation.cash}%</span>
+              
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-4 h-4 bg-green-500 rounded-full"></div>
+                    <span className="text-gray-700 font-medium">อสังหาริมทรัพย์</span>
+                  </div>
+                  <span className="text-lg font-bold text-green-600">{riskProfile.recommendedAllocation.realEstate}%</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-3">
+                  <div 
+                    className="bg-green-500 h-3 rounded-full transition-all duration-500"
+                    style={{ width: `${riskProfile.recommendedAllocation.realEstate}%` }}
+                  ></div>
+                </div>
+              </div>
+              
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-4 h-4 bg-yellow-500 rounded-full"></div>
+                    <span className="text-gray-700 font-medium">เงินสด</span>
+                  </div>
+                  <span className="text-lg font-bold text-yellow-600">{riskProfile.recommendedAllocation.cash}%</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-3">
+                  <div 
+                    className="bg-yellow-500 h-3 rounded-full transition-all duration-500"
+                    style={{ width: `${riskProfile.recommendedAllocation.cash}%` }}
+                  ></div>
+                </div>
               </div>
             </div>
           </div>
@@ -967,10 +1083,27 @@ export default function InvestmentPlanningPage() {
 
       {/* Investment Scenarios */}
       <div className="card">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">การจำลองสถานการณ์การลงทุน</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4 lg:mb-0 flex items-center space-x-2">
+            <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+              <ChartBarIcon className="w-5 h-5 text-green-600" />
+            </div>
+            <span>การจำลองสถานการณ์การลงทุน</span>
+          </h3>
+          
+          <button
+            onClick={() => setShowScenarioSettings(true)}
+            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2"
+          >
+            <AdjustmentsHorizontalIcon className="w-4 h-4" />
+            <span>ตั้งค่าการจำลอง</span>
+          </button>
+        </div>
+        
+        {/* Investment Scenarios Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
           {investmentScenarios.map((scenario, index) => (
-            <div key={index} className="border border-gray-200 rounded-lg p-6">
+            <div key={index} className="border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow">
               <div className="text-center mb-4">
                 <h4 className="text-lg font-medium text-gray-900 mb-2">{scenario.name}</h4>
                 <span className={`px-3 py-1 text-sm rounded-full ${getRiskColor(scenario.risk)}`}>
@@ -1002,6 +1135,356 @@ export default function InvestmentPlanningPage() {
               </div>
             </div>
           ))}
+        </div>
+        
+        {/* Investment Growth Chart */}
+        <div className="bg-white rounded-lg p-6 border border-gray-200">
+          <h4 className="text-lg font-semibold text-gray-900 mb-4">กราฟการเติบโตของเงินลงทุน</h4>
+          <div className="h-80 bg-gray-50 rounded-lg border border-gray-200 p-4">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart
+                data={generateChartData()}
+                margin={{
+                  top: 5,
+                  right: 30,
+                  left: 20,
+                  bottom: 5,
+                }}
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                <XAxis 
+                  dataKey="year" 
+                  stroke="#6B7280"
+                  fontSize={12}
+                  tickLine={false}
+                  axisLine={false}
+                />
+                <YAxis 
+                  stroke="#6B7280"
+                  fontSize={12}
+                  tickLine={false}
+                  axisLine={false}
+                  tickFormatter={(value) => `฿${(value / 1000000).toFixed(1)}M`}
+                />
+                <Tooltip 
+                  formatter={(value: any) => [`฿${value.toLocaleString()}`, '']}
+                  labelFormatter={(label) => `${label}`}
+                  contentStyle={{
+                    backgroundColor: 'white',
+                    border: '1px solid #E5E7EB',
+                    borderRadius: '8px',
+                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                  }}
+                />
+                <Legend 
+                  verticalAlign="top" 
+                  height={36}
+                  iconType="circle"
+                  wrapperStyle={{
+                    paddingBottom: '10px'
+                  }}
+                />
+                
+                {/* Conservative Line */}
+                <Area
+                  type="monotone"
+                  dataKey="conservative"
+                  stackId="1"
+                  stroke="#10B981"
+                  strokeWidth={3}
+                  fill="#10B981"
+                  fillOpacity={0.1}
+                  name="Conservative"
+                />
+                
+                {/* Moderate Line */}
+                <Area
+                  type="monotone"
+                  dataKey="moderate"
+                  stackId="2"
+                  stroke="#F59E0B"
+                  strokeWidth={3}
+                  fill="#F59E0B"
+                  fillOpacity={0.1}
+                  name="Moderate"
+                />
+                
+                {/* Aggressive Line */}
+                <Area
+                  type="monotone"
+                  dataKey="aggressive"
+                  stackId="3"
+                  stroke="#EF4444"
+                  strokeWidth={3}
+                  fill="#EF4444"
+                  fillOpacity={0.1}
+                  name="Aggressive"
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+          
+          {/* Chart Summary */}
+          <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="text-center p-3 bg-green-50 rounded-lg border border-green-200">
+              <div className="text-sm font-medium text-green-800">Conservative</div>
+              <div className="text-lg font-bold text-green-600">
+                ฿{generateChartData()[20]?.conservative?.toLocaleString() || '0'}
+              </div>
+              <div className="text-xs text-green-600">มูลค่าในปีที่ 20</div>
+            </div>
+            
+            <div className="text-center p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+              <div className="text-sm font-medium text-yellow-800">Moderate</div>
+              <div className="text-lg font-bold text-yellow-600">
+                ฿{generateChartData()[20]?.moderate?.toLocaleString() || '0'}
+              </div>
+              <div className="text-xs text-yellow-600">มูลค่าในปีที่ 20</div>
+            </div>
+            
+            <div className="text-center p-3 bg-red-50 rounded-lg border border-red-200">
+              <div className="text-sm font-medium text-red-800">Aggressive</div>
+              <div className="text-lg font-bold text-red-600">
+                ฿{generateChartData()[20]?.aggressive?.toLocaleString() || '0'}
+              </div>
+              <div className="text-xs text-red-600">มูลค่าในปีที่ 20</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Investment Risk Allocation */}
+      <div className="card">
+        <h3 className="text-lg font-semibold text-gray-900 mb-6 flex items-center space-x-2">
+          <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
+            <ChartBarIcon className="w-5 h-5 text-orange-600" />
+          </div>
+          <span>สัดส่วนการลงทุนตามระดับความเสี่ยง</span>
+        </h3>
+        
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Conservative Portfolio */}
+          <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 border border-green-200">
+            <div className="flex items-center justify-between mb-4">
+              <h4 className="text-lg font-semibold text-green-900">Conservative</h4>
+              <span className="px-3 py-1 text-sm font-medium bg-green-100 text-green-800 rounded-full">
+                ความเสี่ยง: ต่ำ
+              </span>
+            </div>
+            
+            <div className="space-y-4">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-4 h-4 bg-blue-500 rounded-full"></div>
+                    <span className="text-gray-700 font-medium">พันธบัตร</span>
+                  </div>
+                  <span className="text-lg font-bold text-blue-600">50%</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-3">
+                  <div 
+                    className="bg-blue-500 h-3 rounded-full transition-all duration-500"
+                    style={{ width: '50%' }}
+                  ></div>
+                </div>
+              </div>
+              
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-4 h-4 bg-green-500 rounded-full"></div>
+                    <span className="text-gray-700 font-medium">หุ้น Blue Chip</span>
+                  </div>
+                  <span className="text-lg font-bold text-green-600">30%</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-3">
+                  <div 
+                    className="bg-green-500 h-3 rounded-full transition-all duration-500"
+                    style={{ width: '30%' }}
+                  ></div>
+                </div>
+              </div>
+              
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-4 h-4 bg-yellow-500 rounded-full"></div>
+                    <span className="text-gray-700 font-medium">เงินสด</span>
+                  </div>
+                  <span className="text-lg font-bold text-yellow-600">20%</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-3">
+                  <div 
+                    className="bg-yellow-500 h-3 rounded-full transition-all duration-500"
+                    style={{ width: '20%' }}
+                  ></div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="mt-4 p-3 bg-green-100 rounded-lg">
+              <div className="text-sm text-green-800">
+                <div className="font-medium mb-1">ผลตอบแทนที่คาดหวัง: 5-7%</div>
+                <div className="text-xs">เหมาะสำหรับผู้ที่ต้องการความปลอดภัยสูง</div>
+              </div>
+            </div>
+          </div>
+          
+          {/* Moderate Portfolio */}
+          <div className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-xl p-6 border border-yellow-200">
+            <div className="flex items-center justify-between mb-4">
+              <h4 className="text-lg font-semibold text-yellow-900">Moderate</h4>
+              <span className="px-3 py-1 text-sm font-medium bg-yellow-100 text-yellow-800 rounded-full">
+                ความเสี่ยง: ปานกลาง
+              </span>
+            </div>
+            
+            <div className="space-y-4">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-4 h-4 bg-red-500 rounded-full"></div>
+                    <span className="text-gray-700 font-medium">หุ้น</span>
+                  </div>
+                  <span className="text-lg font-bold text-red-600">60%</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-3">
+                  <div 
+                    className="bg-red-500 h-3 rounded-full transition-all duration-500"
+                    style={{ width: '60%' }}
+                  ></div>
+                </div>
+              </div>
+              
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-4 h-4 bg-blue-500 rounded-full"></div>
+                    <span className="text-gray-700 font-medium">พันธบัตร</span>
+                  </div>
+                  <span className="text-lg font-bold text-blue-600">25%</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-3">
+                  <div 
+                    className="bg-blue-500 h-3 rounded-full transition-all duration-500"
+                    style={{ width: '25%' }}
+                  ></div>
+                </div>
+              </div>
+              
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-4 h-4 bg-purple-500 rounded-full"></div>
+                    <span className="text-gray-700 font-medium">อสังหาฯ</span>
+                  </div>
+                  <span className="text-lg font-bold text-purple-600">15%</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-3">
+                  <div 
+                    className="bg-purple-500 h-3 rounded-full transition-all duration-500"
+                    style={{ width: '15%' }}
+                  ></div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="mt-4 p-3 bg-yellow-100 rounded-lg">
+              <div className="text-sm text-yellow-800">
+                <div className="font-medium mb-1">ผลตอบแทนที่คาดหวัง: 8-10%</div>
+                <div className="text-xs">สมดุลระหว่างความเสี่ยงและผลตอบแทน</div>
+              </div>
+            </div>
+          </div>
+          
+          {/* Aggressive Portfolio */}
+          <div className="bg-gradient-to-br from-red-50 to-pink-50 rounded-xl p-6 border border-red-200">
+            <div className="flex items-center justify-between mb-4">
+              <h4 className="text-lg font-semibold text-red-900">Aggressive</h4>
+              <span className="px-3 py-1 text-sm font-medium bg-red-100 text-red-800 rounded-full">
+                ความเสี่ยง: สูง
+              </span>
+            </div>
+            
+            <div className="space-y-4">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-4 h-4 bg-red-600 rounded-full"></div>
+                    <span className="text-gray-700 font-medium">หุ้น Growth</span>
+                  </div>
+                  <span className="text-lg font-bold text-red-600">70%</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-3">
+                  <div 
+                    className="bg-red-600 h-3 rounded-full transition-all duration-500"
+                    style={{ width: '70%' }}
+                  ></div>
+                </div>
+              </div>
+              
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-4 h-4 bg-purple-600 rounded-full"></div>
+                    <span className="text-gray-700 font-medium">อสังหาฯ</span>
+                  </div>
+                  <span className="text-lg font-bold text-purple-600">20%</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-3">
+                  <div 
+                    className="bg-purple-600 h-3 rounded-full transition-all duration-500"
+                    style={{ width: '20%' }}
+                  ></div>
+                </div>
+              </div>
+              
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-4 h-4 bg-orange-500 rounded-full"></div>
+                    <span className="text-gray-700 font-medium">สินค้าโภคภัณฑ์</span>
+                  </div>
+                  <span className="text-lg font-bold text-orange-600">10%</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-3">
+                  <div 
+                    className="bg-orange-500 h-3 rounded-full transition-all duration-500"
+                    style={{ width: '10%' }}
+                  ></div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="mt-4 p-3 bg-red-100 rounded-lg">
+              <div className="text-sm text-red-800">
+                <div className="font-medium mb-1">ผลตอบแทนที่คาดหวัง: 12-15%</div>
+                <div className="text-xs">เหมาะสำหรับผู้ที่ยอมรับความเสี่ยงสูง</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        {/* Portfolio Summary */}
+        <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+          <h4 className="font-semibold text-gray-900 mb-3">สรุปการจัดสรรพอร์ตการลงทุน</h4>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-green-600">Conservative</div>
+              <div className="text-gray-600">ความเสี่ยงต่ำ • ผลตอบแทน 5-7%</div>
+              <div className="text-xs text-gray-500 mt-1">เหมาะสำหรับผู้เริ่มต้นหรือผู้สูงอายุ</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-yellow-600">Moderate</div>
+              <div className="text-gray-600">ความเสี่ยงปานกลาง • ผลตอบแทน 8-10%</div>
+              <div className="text-xs text-gray-500 mt-1">เหมาะสำหรับผู้ลงทุนทั่วไป</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-red-600">Aggressive</div>
+              <div className="text-gray-600">ความเสี่ยงสูง • ผลตอบแทน 12-15%</div>
+              <div className="text-xs text-gray-500 mt-1">เหมาะสำหรับผู้มีประสบการณ์</div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -1053,7 +1536,14 @@ export default function InvestmentPlanningPage() {
                 <p className="text-sm text-gray-600">ปรับสมดุลพอร์ตทุก 3 เดือน</p>
               </div>
             </div>
-            <span className="px-3 py-1 bg-green-100 text-green-800 text-sm rounded-full">เปิดใช้งาน</span>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input 
+                type="checkbox" 
+                className="sr-only peer"
+                defaultChecked={true}
+              />
+              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
+            </label>
           </div>
           
           <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
@@ -1064,7 +1554,14 @@ export default function InvestmentPlanningPage() {
                 <p className="text-sm text-gray-600">แจ้งเตือนเมื่อราคาสินทรัพย์เปลี่ยนแปลงมาก</p>
               </div>
             </div>
-            <span className="px-3 py-1 bg-green-100 text-green-800 text-sm rounded-full">เปิดใช้งาน</span>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input 
+                type="checkbox" 
+                className="sr-only peer"
+                defaultChecked={true}
+              />
+              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
+            </label>
           </div>
           
           <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
@@ -1075,7 +1572,14 @@ export default function InvestmentPlanningPage() {
                 <p className="text-sm text-gray-600">ปรับแผนการลงทุนตามสถานการณ์ทางการเงิน</p>
               </div>
             </div>
-            <span className="px-3 py-1 bg-yellow-100 text-yellow-800 text-sm rounded-full">รอการตั้งค่า</span>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input 
+                type="checkbox" 
+                className="sr-only peer"
+                defaultChecked={false}
+              />
+              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
+            </label>
           </div>
         </div>
       </div>
@@ -1416,6 +1920,219 @@ export default function InvestmentPlanningPage() {
                 className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
               >
                 เพิ่มหมวดหมู่
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Scenario Settings Modal */}
+      {showScenarioSettings && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold text-gray-900">ตั้งค่าการจำลองสถานการณ์การลงทุน</h2>
+              <button
+                onClick={() => setShowScenarioSettings(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <XMarkIcon className="w-6 h-6" />
+              </button>
+            </div>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Conservative Scenario */}
+              <div className="border border-gray-200 rounded-lg p-4">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4 text-center">Conservative</h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">เงินออมต่อเดือน (บาท)</label>
+                    <input
+                      type="number"
+                      value={investmentScenarios[0].monthlyInvestment}
+                      onChange={(e) => {
+                        const newScenarios = [...investmentScenarios]
+                        newScenarios[0].monthlyInvestment = parseInt(e.target.value)
+                        setInvestmentScenarios(newScenarios)
+                      }}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      min="1000"
+                      step="1000"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">ผลตอบแทนที่คาดหวัง (%)</label>
+                    <input
+                      type="number"
+                      value={investmentScenarios[0].expectedReturn}
+                      onChange={(e) => {
+                        const newScenarios = [...investmentScenarios]
+                        newScenarios[0].expectedReturn = parseFloat(e.target.value)
+                        setInvestmentScenarios(newScenarios)
+                      }}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      min="1"
+                      max="20"
+                      step="0.5"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">ความเสี่ยง</label>
+                    <select
+                      value={investmentScenarios[0].risk}
+                      onChange={(e) => {
+                        const newScenarios = [...investmentScenarios]
+                        newScenarios[0].risk = e.target.value as 'low' | 'medium' | 'high'
+                        setInvestmentScenarios(newScenarios)
+                      }}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    >
+                      <option value="low">ต่ำ</option>
+                      <option value="medium">ปานกลาง</option>
+                      <option value="high">สูง</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Moderate Scenario */}
+              <div className="border border-gray-200 rounded-lg p-4">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4 text-center">Moderate</h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">เงินออมต่อเดือน (บาท)</label>
+                    <input
+                      type="number"
+                      value={investmentScenarios[1].monthlyInvestment}
+                      onChange={(e) => {
+                        const newScenarios = [...investmentScenarios]
+                        newScenarios[1].monthlyInvestment = parseInt(e.target.value)
+                        setInvestmentScenarios(newScenarios)
+                      }}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      min="1000"
+                      step="1000"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">ผลตอบแทนที่คาดหวัง (%)</label>
+                    <input
+                      type="number"
+                      value={investmentScenarios[1].expectedReturn}
+                      onChange={(e) => {
+                        const newScenarios = [...investmentScenarios]
+                        newScenarios[1].expectedReturn = parseFloat(e.target.value)
+                        setInvestmentScenarios(newScenarios)
+                      }}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      min="1"
+                      max="20"
+                      step="0.5"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">ความเสี่ยง</label>
+                    <select
+                      value={investmentScenarios[1].risk}
+                      onChange={(e) => {
+                        const newScenarios = [...investmentScenarios]
+                        newScenarios[1].risk = e.target.value as 'low' | 'medium' | 'high'
+                        setInvestmentScenarios(newScenarios)
+                      }}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    >
+                      <option value="low">ต่ำ</option>
+                      <option value="medium">ปานกลาง</option>
+                      <option value="high">สูง</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Aggressive Scenario */}
+              <div className="border border-gray-200 rounded-lg p-4">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4 text-center">Aggressive</h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">เงินออมต่อเดือน (บาท)</label>
+                    <input
+                      type="number"
+                      value={investmentScenarios[2].monthlyInvestment}
+                      onChange={(e) => {
+                        const newScenarios = [...investmentScenarios]
+                        newScenarios[2].monthlyInvestment = parseInt(e.target.value)
+                        setInvestmentScenarios(newScenarios)
+                      }}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      min="1000"
+                      step="1000"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">ผลตอบแทนที่คาดหวัง (%)</label>
+                    <input
+                      type="number"
+                      value={investmentScenarios[2].expectedReturn}
+                      onChange={(e) => {
+                        const newScenarios = [...investmentScenarios]
+                        newScenarios[2].expectedReturn = parseFloat(e.target.value)
+                        setInvestmentScenarios(newScenarios)
+                      }}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      min="1"
+                      max="20"
+                      step="0.5"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">ความเสี่ยง</label>
+                    <select
+                      value={investmentScenarios[2].risk}
+                      onChange={(e) => {
+                        const newScenarios = [...investmentScenarios]
+                        newScenarios[2].risk = e.target.value as 'low' | 'medium' | 'high'
+                        setInvestmentScenarios(newScenarios)
+                      }}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    >
+                      <option value="low">ต่ำ</option>
+                      <option value="medium">ปานกลาง</option>
+                      <option value="high">สูง</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="text-sm text-blue-800">
+                <div className="font-medium mb-2">คำแนะนำ:</div>
+                <ul className="list-disc list-inside space-y-1">
+                  <li>Conservative: เหมาะสำหรับผู้ที่ต้องการความปลอดภัยสูง</li>
+                  <li>Moderate: สมดุลระหว่างความเสี่ยงและผลตอบแทน</li>
+                  <li>Aggressive: เหมาะสำหรับผู้ที่ยอมรับความเสี่ยงสูงเพื่อผลตอบแทนสูง</li>
+                </ul>
+              </div>
+            </div>
+            
+            <div className="flex justify-end space-x-3 mt-6 pt-4 border-t border-gray-200">
+              <button
+                onClick={() => setShowScenarioSettings(false)}
+                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+              >
+                ปิด
+              </button>
+              <button
+                onClick={() => setShowScenarioSettings(false)}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+              >
+                บันทึกการตั้งค่า
               </button>
             </div>
           </div>
