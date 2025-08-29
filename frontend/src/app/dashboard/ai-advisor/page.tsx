@@ -614,7 +614,7 @@ export default function AIAdvisorPage() {
       </div>
 
       {/* Investment Opportunities */}
-      <div className="card">
+      {/* <div className="card">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">โอกาสการลงทุน</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {investmentOpportunities.map((opportunity, index) => (
@@ -637,7 +637,7 @@ export default function AIAdvisorPage() {
             </div>
           ))}
         </div>
-      </div>
+      </div> */}
 
       {/* Peer Comparison */}
       <div className="card">
