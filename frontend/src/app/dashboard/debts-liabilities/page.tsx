@@ -13,6 +13,23 @@ import {
   PlusIcon,
   XMarkIcon
 } from '@heroicons/react/24/outline'
+import { 
+  LineChart, 
+  Line, 
+  AreaChart, 
+  Area, 
+  BarChart, 
+  Bar, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  Legend, 
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell
+} from 'recharts'
 
 // Add Debt Popup Component
 function AddDebtPopup({ isOpen, onClose, onAdd }: {
@@ -437,6 +454,33 @@ export default function DebtsLiabilitiesPage() {
   const handleAddDebt = (newDebt: any) => {
     setDebts(prev => [...prev, newDebt])
   }
+
+  // ข้อมูลสำหรับกราฟ
+  const debtProgressData = [
+    { month: 'ม.ค.', creditCard: 15000, carLoan: 300000, homeLoan: 485000, total: 800000 },
+    { month: 'ก.พ.', creditCard: 14000, carLoan: 295000, homeLoan: 480000, total: 789000 },
+    { month: 'มี.ค.', creditCard: 13000, carLoan: 290000, homeLoan: 475000, total: 778000 },
+    { month: 'เม.ย.', creditCard: 12000, carLoan: 285000, homeLoan: 470000, total: 767000 },
+    { month: 'พ.ค.', creditCard: 11000, carLoan: 280000, homeLoan: 465000, total: 756000 },
+    { month: 'มิ.ย.', creditCard: 10000, carLoan: 275000, homeLoan: 460000, total: 745000 }
+  ]
+
+  const monthlyPaymentData = [
+    { month: 'ม.ค.', creditCard: 3000, carLoan: 8000, homeLoan: 14000, total: 25000 },
+    { month: 'ก.พ.', creditCard: 3000, carLoan: 8000, homeLoan: 14000, total: 25000 },
+    { month: 'มี.ค.', creditCard: 3000, carLoan: 8000, homeLoan: 14000, total: 25000 },
+    { month: 'เม.ย.', creditCard: 3000, carLoan: 8000, homeLoan: 14000, total: 25000 },
+    { month: 'พ.ค.', creditCard: 3000, carLoan: 8000, homeLoan: 14000, total: 25000 },
+    { month: 'มิ.ย.', creditCard: 3000, carLoan: 8000, homeLoan: 14000, total: 25000 }
+  ]
+
+  const debtTypeDistribution = [
+    { name: 'บัตรเครดิต', value: 15000, color: '#EF4444' },
+    { name: 'สินเชื่อรถ', value: 300000, color: '#F59E0B' },
+    { name: 'สินเชื่อบ้าน', value: 485000, color: '#3B82F6' }
+  ]
+
+  const COLORS = ['#EF4444', '#F59E0B', '#3B82F6', '#8B5CF6', '#EC4899', '#10B981']
 
   return (
     <div className="space-y-6">
@@ -888,11 +932,200 @@ export default function DebtsLiabilitiesPage() {
       {/* Debt Progress Chart */}
       <div className="card">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">กราฟความคืบหน้าการชำระหนี้</h3>
-        <div className="h-64 bg-gray-100 rounded-lg flex items-center justify-center">
-          <div className="text-center">
-            <ChartBarIcon className="w-12 h-12 text-gray-400 mx-auto mb-2" />
-            <p className="text-gray-500">กราฟแสดงความคืบหน้าการชำระหนี้แต่ละรายการ</p>
-            <p className="text-sm text-gray-400">จะแสดงกราฟจริงเมื่อเชื่อมต่อ backend</p>
+        
+        {/* Progress Overview Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+          <div className="text-center p-4 bg-red-50 rounded-lg">
+            <div className="text-2xl font-bold text-red-600 mb-1">-6.9%</div>
+            <div className="text-sm text-red-700">ลดลงจากเดือนที่แล้ว</div>
+          </div>
+          <div className="text-center p-4 bg-green-50 rounded-lg">
+            <div className="text-2xl font-bold text-green-600 mb-1">฿55,000</div>
+            <div className="text-sm text-green-700">ชำระไปแล้ว</div>
+          </div>
+          <div className="text-center p-4 bg-blue-50 rounded-lg">
+            <div className="text-2xl font-bold text-blue-600 mb-1">฿745,000</div>
+            <div className="text-sm text-blue-700">หนี้คงเหลือ</div>
+          </div>
+          <div className="text-center p-4 bg-purple-50 rounded-lg">
+            <div className="text-2xl font-bold text-purple-600 mb-1">6.9%</div>
+            <div className="text-sm text-purple-700">ความคืบหน้า</div>
+          </div>
+        </div>
+
+        {/* Charts Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          {/* Line Chart - Debt Balance Over Time */}
+          <div className="card bg-white">
+            <h4 className="font-medium text-gray-700 mb-4">ยอดหนี้คงเหลือรายเดือน</h4>
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={debtProgressData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                  <XAxis 
+                    dataKey="month" 
+                    stroke="#6b7280"
+                    fontSize={12}
+                  />
+                  <YAxis 
+                    stroke="#6b7280"
+                    fontSize={12}
+                    tickFormatter={(value) => `${(value / 1000).toFixed(0)}K`}
+                  />
+                  <Tooltip 
+                    formatter={(value, name) => [
+                      `฿${value.toLocaleString()}`, 
+                      name === 'creditCard' ? 'บัตรเครดิต' :
+                      name === 'carLoan' ? 'สินเชื่อรถ' :
+                      name === 'homeLoan' ? 'สินเชื่อบ้าน' :
+                      'รวมทั้งหมด'
+                    ]}
+                    labelFormatter={(label) => `เดือน: ${label}`}
+                  />
+                  <Legend />
+                  <Line 
+                    type="monotone" 
+                    dataKey="creditCard" 
+                    stroke="#EF4444" 
+                    strokeWidth={3}
+                    name="บัตรเครดิต"
+                    dot={{ fill: '#EF4444', strokeWidth: 2, r: 4 }}
+                    activeDot={{ r: 6 }}
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="carLoan" 
+                    stroke="#F59E0B" 
+                    strokeWidth={3}
+                    name="สินเชื่อรถ"
+                    dot={{ fill: '#F59E0B', strokeWidth: 2, r: 4 }}
+                    activeDot={{ r: 6 }}
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="homeLoan" 
+                    stroke="#3B82F6" 
+                    strokeWidth={3}
+                    name="สินเชื่อบ้าน"
+                    dot={{ fill: '#3B82F6', strokeWidth: 2, r: 4 }}
+                    activeDot={{ r: 6 }}
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="total" 
+                    stroke="#8B5CF6" 
+                    strokeWidth={3}
+                    name="รวมทั้งหมด"
+                    dot={{ fill: '#8B5CF6', strokeWidth: 2, r: 4 }}
+                    activeDot={{ r: 6 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Bar Chart - Monthly Payments */}
+          <div className="card bg-white">
+            <h4 className="font-medium text-gray-700 mb-4">การชำระรายเดือน</h4>
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={monthlyPaymentData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                  <XAxis 
+                    dataKey="month" 
+                    stroke="#6b7280"
+                    fontSize={12}
+                  />
+                  <YAxis 
+                    stroke="#6b7280"
+                    fontSize={12}
+                    tickFormatter={(value) => `${(value / 1000).toFixed(0)}K`}
+                  />
+                  <Tooltip 
+                    formatter={(value, name) => [
+                      `฿${value.toLocaleString()}`, 
+                      name === 'creditCard' ? 'บัตรเครดิต' :
+                      name === 'carLoan' ? 'สินเชื่อรถ' :
+                      name === 'homeLoan' ? 'สินเชื่อบ้าน' :
+                      'รวมทั้งหมด'
+                    ]}
+                    labelFormatter={(label) => `เดือน: ${label}`}
+                  />
+                  <Legend />
+                  <Bar 
+                    dataKey="creditCard" 
+                    fill="#EF4444" 
+                    name="บัตรเครดิต"
+                    radius={[4, 4, 0, 0]}
+                  />
+                  <Bar 
+                    dataKey="carLoan" 
+                    fill="#F59E0B" 
+                    name="สินเชื่อรถ"
+                    radius={[4, 4, 0, 0]}
+                  />
+                  <Bar 
+                    dataKey="homeLoan" 
+                    fill="#3B82F6" 
+                    name="สินเชื่อบ้าน"
+                    radius={[4, 4, 0, 0]}
+                  />
+                  <Bar 
+                    dataKey="total" 
+                    fill="#8B5CF6" 
+                    name="รวมทั้งหมด"
+                    radius={[4, 4, 0, 0]}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
+
+        {/* Pie Chart - Debt Distribution */}
+        <div className="mb-6">
+          <h4 className="font-medium text-gray-700 mb-4">สัดส่วนหนี้สินตามประเภท</h4>
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={debtTypeDistribution}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="value"
+                >
+                  {debtTypeDistribution.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip 
+                  formatter={(value, name) => [`฿${value.toLocaleString()}`, name]}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Progress Summary */}
+        <div className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg">
+          <h4 className="font-medium text-blue-900 mb-3">สรุปความคืบหน้าการชำระหนี้</h4>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+            <div className="text-center">
+              <div className="text-lg font-bold text-blue-600 mb-1">📉 ลดลง</div>
+              <div className="text-blue-700">บัตรเครดิต: 15K → 10K (-33%)</div>
+            </div>
+            <div className="text-center">
+              <div className="text-lg font-bold text-green-600 mb-1">📉 ลดลง</div>
+              <div className="text-green-700">สินเชื่อรถ: 300K → 275K (-8.3%)</div>
+            </div>
+            <div className="text-center">
+              <div className="text-lg font-bold text-purple-600 mb-1">📉 ลดลง</div>
+              <div className="text-purple-700">สินเชื่อบ้าน: 485K → 460K (-5.2%)</div>
+            </div>
           </div>
         </div>
       </div>
