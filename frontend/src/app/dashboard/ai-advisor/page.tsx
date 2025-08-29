@@ -302,24 +302,39 @@ export default function AIAdvisorPage() {
   const portfolioRebalancing = {
     lastRebalanced: '2024-01-15',
     nextRebalancing: '2024-07-15',
+    currentAllocation: {
+      thaiStocks: { current: 45, target: 70, action: 'increase', amount: '+25%' },
+      foreignStocks: { current: 25, target: 20, action: 'decrease', amount: '-5%' },
+      bonds: { current: 20, target: 15, action: 'decrease', amount: '-5%' },
+      gold: { current: 10, target: 5, action: 'decrease', amount: '-5%' }
+    },
     recommendations: [
       {
         action: 'เพิ่มหุ้น SET50',
         reason: 'ราคาปรับตัวลง 5% เหมาะสำหรับการซื้อเพิ่ม',
         priority: 'high',
-        expectedImpact: 'positive'
+        expectedImpact: 'positive',
+        currentAllocation: '45%',
+        targetAllocation: '70%',
+        adjustment: '+25%'
       },
       {
         action: 'ลดสัดส่วนทองคำ',
         reason: 'สัดส่วนเกินเป้าหมายที่กำหนดไว้',
         priority: 'medium',
-        expectedImpact: 'neutral'
+        expectedImpact: 'neutral',
+        currentAllocation: '10%',
+        targetAllocation: '5%',
+        adjustment: '-5%'
       },
       {
         action: 'เพิ่มพันธบัตรรัฐบาล',
         reason: 'ดอกเบี้ยเริ่มปรับตัวขึ้น เหมาะสำหรับการลงทุน',
         priority: 'low',
-        expectedImpact: 'positive'
+        expectedImpact: 'positive',
+        currentAllocation: '20%',
+        targetAllocation: '15%',
+        adjustment: '-5%'
       }
     ]
   }
@@ -465,43 +480,136 @@ export default function AIAdvisorPage() {
         </div>
       </div>
 
-      {/* Portfolio Rebalancing */}
+      {/* Portfolio Allocation & Recommendations */}
       <div className="card">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">การปรับสมดุลพอร์ต (Rebalancing)</h3>
-        <div className="mb-4 p-4 bg-blue-50 rounded-lg">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-blue-900">รีบาลานซ์ล่าสุด: {portfolioRebalancing.lastRebalanced}</p>
-              <p className="text-sm text-blue-700">รีบาลานซ์ครั้งถัดไป: {portfolioRebalancing.nextRebalancing}</p>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">สัดส่วนการลงทุนปัจจุบันและคำแนะนำ</h3>
+        
+        {/* Current Portfolio Overview */}
+        <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg">
+          <h4 className="font-medium text-blue-900 mb-3">ภาพรวมพอร์ตปัจจุบัน</h4>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-blue-600">฿1,250,000</div>
+              <div className="text-sm text-blue-700">มูลค่ารวม</div>
             </div>
-            <button className="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">
-              รีบาลานซ์ตอนนี้
-            </button>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-green-600">45%</div>
+              <div className="text-sm text-green-700">หุ้นไทย</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-purple-600">25%</div>
+              <div className="text-sm text-purple-700">หุ้นต่างประเทศ</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-orange-600">30%</div>
+              <div className="text-sm text-orange-700">อื่นๆ</div>
+            </div>
           </div>
         </div>
-        
-        <div className="space-y-4">
-          {portfolioRebalancing.recommendations.map((rec, index) => (
-            <div key={index} className="border border-gray-200 rounded-lg p-4">
-              <div className="flex items-center justify-between mb-2">
-                <h4 className="font-medium text-gray-900">{rec.action}</h4>
-                <span className={`px-2 py-1 text-xs rounded-full ${getPriorityColor(rec.priority)}`}>
-                  {getPriorityText(rec.priority)}
-                </span>
+
+        {/* Allocation Comparison Table */}
+        <div className="mb-6">
+          <h4 className="font-medium text-gray-700 mb-3">เปรียบเทียบสัดส่วนปัจจุบันกับเป้าหมาย</h4>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  <th className="text-left py-2 font-medium text-gray-700">ประเภทการลงทุน</th>
+                  <th className="text-center py-2 font-medium text-gray-700">ปัจจุบัน</th>
+                  <th className="text-center py-2 font-medium text-gray-700">เป้าหมาย</th>
+                  <th className="text-center py-2 font-medium text-gray-700">การปรับ</th>
+                  <th className="text-center py-2 font-medium text-gray-700">สถานะ</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {Object.entries(portfolioRebalancing.currentAllocation).map(([key, allocation]) => (
+                  <tr key={key} className="hover:bg-gray-50">
+                    <td className="py-3 font-medium text-gray-900">
+                      {key === 'thaiStocks' ? 'หุ้นไทย' :
+                       key === 'foreignStocks' ? 'หุ้นต่างประเทศ' :
+                       key === 'bonds' ? 'พันธบัตร' : 'ทองคำ'}
+                    </td>
+                    <td className="py-3 text-center">
+                      <span className="font-medium">{allocation.current}%</span>
+                    </td>
+                    <td className="py-3 text-center">
+                      <span className="font-medium">{allocation.target}%</span>
+                    </td>
+                    <td className="py-3 text-center">
+                      <span className={`px-2 py-1 text-xs rounded-full font-medium ${
+                        allocation.action === 'increase' 
+                          ? 'bg-green-100 text-green-800' 
+                          : 'bg-red-100 text-red-800'
+                      }`}>
+                        {allocation.amount}
+                      </span>
+                    </td>
+                    <td className="py-3 text-center">
+                      <span className={`px-2 py-1 text-xs rounded-full ${
+                        allocation.current === allocation.target
+                          ? 'bg-green-100 text-green-800'
+                          : allocation.current > allocation.target
+                          ? 'bg-yellow-100 text-yellow-800'
+                          : 'bg-blue-100 text-blue-800'
+                      }`}>
+                        {allocation.current === allocation.target ? 'ตรงเป้าหมาย' :
+                         allocation.current > allocation.target ? 'เกินเป้าหมาย' : 'ต่ำกว่าเป้าหมาย'}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Detailed Recommendations */}
+        <div>
+          <h4 className="font-medium text-gray-700 mb-3">คำแนะนำการปรับสัดส่วน</h4>
+          <div className="space-y-4">
+            {portfolioRebalancing.recommendations.map((rec, index) => (
+              <div key={index} className="border border-gray-200 rounded-lg p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h5 className="font-medium text-gray-900">{rec.action}</h5>
+                  <span className={`px-2 py-1 text-xs rounded-full ${getPriorityColor(rec.priority)}`}>
+                    {getPriorityText(rec.priority)}
+                  </span>
+                </div>
+                
+                <p className="text-sm text-gray-600 mb-3">{rec.reason}</p>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-500">สัดส่วนปัจจุบัน:</span>
+                    <span className="font-medium">{rec.currentAllocation}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-500">เป้าหมาย:</span>
+                    <span className="font-medium">{rec.targetAllocation}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-500">การปรับ:</span>
+                    <span className={`font-medium ${
+                      rec.adjustment.startsWith('+') ? 'text-green-600' : 'text-red-600'
+                    }`}>
+                      {rec.adjustment}
+                    </span>
+                  </div>
+                </div>
+                
+                <div className="mt-3 flex items-center space-x-2">
+                  <span className="text-sm text-gray-500">ผลกระทบที่คาดหวัง:</span>
+                  <span className={`text-sm font-medium ${
+                    rec.expectedImpact === 'positive' ? 'text-green-600' : 
+                    rec.expectedImpact === 'negative' ? 'text-red-600' : 'text-gray-600'
+                  }`}>
+                    {rec.expectedImpact === 'positive' ? 'ดี' : 
+                     rec.expectedImpact === 'negative' ? 'ไม่ดี' : 'ไม่มีผล'}
+                  </span>
+                </div>
               </div>
-              <p className="text-sm text-gray-600 mb-3">{rec.reason}</p>
-              <div className="flex items-center space-x-2">
-                <span className="text-sm text-gray-500">ผลกระทบที่คาดหวัง:</span>
-                <span className={`text-sm font-medium ${
-                  rec.expectedImpact === 'positive' ? 'text-green-600' : 
-                  rec.expectedImpact === 'negative' ? 'text-red-600' : 'text-gray-600'
-                }`}>
-                  {rec.expectedImpact === 'positive' ? 'ดี' : 
-                   rec.expectedImpact === 'negative' ? 'ไม่ดี' : 'ไม่มีผล'}
-                </span>
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
 
