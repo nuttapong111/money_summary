@@ -726,7 +726,7 @@ export default function AIAdvisorPage() {
       </div>
 
       {/* AI Insights */}
-      <div className="card">
+      {/* <div className="card">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">ข้อมูลเชิงลึกจาก AI</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="p-4 bg-purple-50 rounded-lg">
@@ -749,7 +749,7 @@ export default function AIAdvisorPage() {
             </div>
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Risk Assessment Popup */}
       <RiskAssessmentPopup

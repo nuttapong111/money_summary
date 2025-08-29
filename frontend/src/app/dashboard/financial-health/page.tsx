@@ -47,6 +47,63 @@ export default function FinancialHealthPage() {
       status: 'excellent',
       description: 'อัตราการออม (%)',
       recommendation: 'ดีมาก ควรรักษาระดับนี้ไว้'
+    },
+    // เพิ่มเกณฑ์ชี้วัดใหม่
+    netWorthRatio: {
+      value: 2.8,
+      target: 2.0,
+      status: 'excellent',
+      description: 'อัตราส่วนมูลค่าสินทรัพย์สุทธิต่อรายได้ (ปี)',
+      recommendation: 'ดีมาก มีมูลค่าสินทรัพย์สุทธิสูง'
+    },
+    liquidityRatio: {
+      value: 3.2,
+      target: 2.5,
+      status: 'excellent',
+      description: 'อัตราส่วนสภาพคล่อง (สินทรัพย์หมุนเวียน/หนี้สินระยะสั้น)',
+      recommendation: 'ดีมาก มีสภาพคล่องสูง'
+    },
+    housingExpenseRatio: {
+      value: 22,
+      target: 28,
+      status: 'excellent',
+      description: 'อัตราส่วนค่าใช้จ่ายที่อยู่อาศัยต่อรายได้ (%)',
+      recommendation: 'ดีมาก ค่าใช้จ่ายที่อยู่อาศัยเหมาะสม'
+    },
+    transportationExpenseRatio: {
+      value: 8,
+      target: 15,
+      status: 'excellent',
+      description: 'อัตราส่วนค่าใช้จ่ายการเดินทางต่อรายได้ (%)',
+      recommendation: 'ดีมาก ค่าใช้จ่ายการเดินทางต่ำ'
+    },
+    insuranceCoverage: {
+      value: 8.5,
+      target: 10,
+      status: 'good',
+      description: 'ความคุ้มครองประกันชีวิต (เท่าของรายได้ต่อปี)',
+      recommendation: 'ควรเพิ่มความคุ้มครองเป็น 10 เท่า'
+    },
+    retirementReadiness: {
+      value: 65,
+      target: 80,
+      status: 'warning',
+      description: 'ความพร้อมสำหรับการเกษียณอายุ (%)',
+      recommendation: 'ควรเพิ่มการออมเพื่อการเกษียณอายุ'
+    },
+    creditScore: {
+      value: 720,
+      target: 750,
+      status: 'good',
+      description: 'คะแนนเครดิต (Credit Score)',
+      recommendation: 'ดี ควรเพิ่มเป็น 750+ เพื่อได้อัตราดอกเบี้ยที่ดี'
+    },
+    taxEfficiency: {
+      value: 75,
+      target: 80,
+      status: 'good',
+      description: 'ประสิทธิภาพการลดหย่อนภาษี (%)',
+      recommendation: 'ดี ควรใช้สิทธิ์ลดหย่อนภาษีให้ครบถ้วน'
     }
   }
 
@@ -148,7 +205,7 @@ export default function FinancialHealthPage() {
       {/* Financial Ratios */}
       <div className="card">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">อัตราส่วนทางการเงินสำคัญ</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {Object.entries(financialRatios).map(([key, ratio]) => {
             const IconComponent = getStatusIcon(ratio.status)
             const progress = (ratio.value / ratio.target) * 100
@@ -156,7 +213,7 @@ export default function FinancialHealthPage() {
             return (
               <div key={key} className="border border-gray-200 rounded-lg p-4">
                 <div className="flex items-center justify-between mb-3">
-                  <h4 className="font-medium text-gray-900">{ratio.description}</h4>
+                  <h4 className="font-medium text-gray-900 text-sm">{ratio.description}</h4>
                   <span className={`px-2 py-1 text-xs rounded-full ${getStatusColor(ratio.status)}`}>
                     {getStatusText(ratio.status)}
                   </span>
@@ -171,14 +228,22 @@ export default function FinancialHealthPage() {
                   <div>
                     <span className="text-2xl font-bold text-gray-900">{ratio.value}</span>
                     <span className="text-gray-500 ml-1">
-                      {key === 'emergencyFund' ? ' เดือน' : '%'}
+                      {key === 'emergencyFund' ? ' เดือน' : 
+                       key === 'netWorthRatio' ? ' เท่า' :
+                       key === 'liquidityRatio' ? ' เท่า' :
+                       key === 'insuranceCoverage' ? ' เท่า' :
+                       key === 'creditScore' ? '' : '%'}
                     </span>
                   </div>
                 </div>
                 
                 <div className="mb-3">
                   <div className="flex justify-between text-sm text-gray-600 mb-1">
-                    <span>เป้าหมาย: {ratio.target}{key === 'emergencyFund' ? ' เดือน' : '%'}</span>
+                    <span>เป้าหมาย: {ratio.target}{key === 'emergencyFund' ? ' เดือน' : 
+                      key === 'netWorthRatio' ? ' เท่า' :
+                      key === 'liquidityRatio' ? ' เท่า' :
+                      key === 'insuranceCoverage' ? ' เท่า' :
+                      key === 'creditScore' ? '' : '%'}</span>
                     <span>{progress.toFixed(0)}%</span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
@@ -197,6 +262,78 @@ export default function FinancialHealthPage() {
               </div>
             )
           })}
+        </div>
+      </div>
+
+      {/* Financial Wellness Score */}
+      <div className="card">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">คะแนนสุขภาพการเงินแยกตามหมวดหมู่</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="text-center p-4 bg-green-50 rounded-lg">
+            <div className="text-3xl font-bold text-green-600 mb-2">92</div>
+            <div className="text-sm font-medium text-green-800">การออม</div>
+            <div className="text-xs text-green-600">ดีมาก</div>
+          </div>
+          
+          <div className="text-center p-4 bg-blue-50 rounded-lg">
+            <div className="text-3xl font-bold text-blue-600 mb-2">85</div>
+            <div className="text-sm font-medium text-blue-800">การลงทุน</div>
+            <div className="text-xs text-blue-600">ดี</div>
+          </div>
+          
+          <div className="text-center p-4 bg-yellow-50 rounded-lg">
+            <div className="text-3xl font-bold text-yellow-600 mb-2">78</div>
+            <div className="text-sm font-medium text-yellow-800">การจัดการหนี้</div>
+            <div className="text-xs text-yellow-600">ควรปรับปรุง</div>
+          </div>
+          
+          <div className="text-center p-4 bg-purple-50 rounded-lg">
+            <div className="text-3xl font-bold text-purple-600 mb-2">88</div>
+            <div className="text-sm font-medium text-purple-800">การป้องกันความเสี่ยง</div>
+            <div className="text-xs text-purple-600">ดี</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Risk Assessment */}
+      <div className="card">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">การประเมินความเสี่ยง</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <h4 className="font-medium text-gray-700 mb-3">ความเสี่ยงทางการเงิน</h4>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
+                <span className="text-sm font-medium text-red-900">ความเสี่ยงสูง</span>
+                <span className="text-sm text-red-600">ต่ำ</span>
+              </div>
+              <div className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
+                <span className="text-sm font-medium text-yellow-900">ความเสี่ยงปานกลาง</span>
+                <span className="text-sm text-yellow-600">ปานกลาง</span>
+              </div>
+              <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                <span className="text-sm font-medium text-green-900">ความเสี่ยงต่ำ</span>
+                <span className="text-sm text-green-600">สูง</span>
+              </div>
+            </div>
+          </div>
+          
+          <div>
+            <h4 className="font-medium text-gray-700 mb-3">ความสามารถในการรับความเสี่ยง</h4>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                <span className="text-sm font-medium text-blue-900">ความสามารถในการรับความเสี่ยง</span>
+                <span className="text-sm text-blue-600">สูง</span>
+              </div>
+              <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                <span className="text-sm font-medium text-green-900">ความเหมาะสมของพอร์ต</span>
+                <span className="text-sm text-green-600">เหมาะสม</span>
+              </div>
+              <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
+                <span className="text-sm font-medium text-purple-900">ความสมดุลของพอร์ต</span>
+                <span className="text-sm text-purple-600">สมดุล</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
