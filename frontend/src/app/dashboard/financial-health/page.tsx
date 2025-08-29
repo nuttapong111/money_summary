@@ -9,6 +9,8 @@ import {
   InformationCircleIcon
 } from '@heroicons/react/24/outline'
 
+import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Tooltip, LineChart, Line, AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend } from 'recharts'
+
 export default function FinancialHealthPage() {
   // Mock data
   const financialHealth = {
@@ -135,6 +137,40 @@ export default function FinancialHealthPage() {
   }
 
   const userAgeGroup = '30-40'
+
+  // ข้อมูลสำหรับกราฟ
+  const progressData = [
+    { month: 'ม.ค.', emergencyFund: 3.5, debtRatio: 18, investmentRatio: 32, savingsRate: 28 },
+    { month: 'ก.พ.', emergencyFund: 3.8, debtRatio: 17, investmentRatio: 33, savingsRate: 29 },
+    { month: 'มี.ค.', emergencyFund: 4.0, debtRatio: 16.5, investmentRatio: 34, savingsRate: 29.5 },
+    { month: 'เม.ย.', emergencyFund: 4.1, debtRatio: 16.2, investmentRatio: 35, savingsRate: 30 },
+    { month: 'พ.ค.', emergencyFund: 4.2, debtRatio: 16, investmentRatio: 36, savingsRate: 30 },
+    { month: 'มิ.ย.', emergencyFund: 4.2, debtRatio: 16, investmentRatio: 36, savingsRate: 30 }
+  ]
+
+  const categoryScores = [
+    { name: 'การออม', score: 92, fill: '#10B981' },
+    { name: 'การลงทุน', score: 85, fill: '#3B82F6' },
+    { name: 'การจัดการหนี้', score: 78, fill: '#F59E0B' },
+    { name: 'การป้องกันความเสี่ยง', score: 88, fill: '#8B5CF6' }
+  ]
+
+  const monthlyComparison = [
+    { month: 'ม.ค.', income: 85000, expenses: 59500, savings: 25500, investment: 30600 },
+    { month: 'ก.พ.', income: 87000, expenses: 60900, savings: 26100, investment: 31320 },
+    { month: 'มี.ค.', income: 89000, expenses: 62300, savings: 26700, investment: 32040 },
+    { month: 'เม.ย.', income: 91000, expenses: 63700, savings: 27300, investment: 32760 },
+    { month: 'พ.ค.', income: 93000, expenses: 65100, savings: 27900, investment: 33480 },
+    { month: 'มิ.ย.', income: 95000, expenses: 66500, savings: 28500, investment: 34200 }
+  ]
+
+  const riskProfileData = [
+    { metric: 'ความเสี่ยงสูง', current: 15, target: 10 },
+    { metric: 'ความเสี่ยงปานกลาง', current: 45, target: 40 },
+    { metric: 'ความเสี่ยงต่ำ', current: 40, target: 50 }
+  ]
+
+  const COLORS = ['#EF4444', '#F59E0B', '#10B981', '#3B82F6', '#8B5CF6', '#EC4899']
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -268,35 +304,72 @@ export default function FinancialHealthPage() {
       {/* Financial Wellness Score */}
       <div className="card">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">คะแนนสุขภาพการเงินแยกตามหมวดหมู่</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="text-center p-4 bg-green-50 rounded-lg">
-            <div className="text-3xl font-bold text-green-600 mb-2">92</div>
-            <div className="text-sm font-medium text-green-800">การออม</div>
-            <div className="text-xs text-green-600">ดีมาก</div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Radar Chart */}
+          <div className="h-80">
+            <ResponsiveContainer width="100%" height="100%">
+              <RadarChart data={categoryScores}>
+                <PolarGrid />
+                <PolarAngleAxis dataKey="name" />
+                <PolarRadiusAxis 
+                  angle={90} 
+                  domain={[0, 100]}
+                  tick={{ fontSize: 12 }}
+                  axisLine={false}
+                />
+                <Radar
+                  name="คะแนนสุขภาพการเงิน"
+                  dataKey="score"
+                  stroke="#8B5CF6"
+                  fill="#8B5CF6"
+                  fillOpacity={0.3}
+                  strokeWidth={2}
+                />
+                <Tooltip 
+                  formatter={(value, name) => [`${value}/100`, 'คะแนน']}
+                  labelFormatter={(label) => `${label}`}
+                />
+              </RadarChart>
+            </ResponsiveContainer>
           </div>
           
-          <div className="text-center p-4 bg-blue-50 rounded-lg">
-            <div className="text-3xl font-bold text-blue-600 mb-2">85</div>
-            <div className="text-sm font-medium text-blue-800">การลงทุน</div>
-            <div className="text-xs text-blue-600">ดี</div>
-          </div>
-          
-          <div className="text-center p-4 bg-yellow-50 rounded-lg">
-            <div className="text-3xl font-bold text-yellow-600 mb-2">78</div>
-            <div className="text-sm font-medium text-yellow-800">การจัดการหนี้</div>
-            <div className="text-xs text-yellow-600">ควรปรับปรุง</div>
-          </div>
-          
-          <div className="text-center p-4 bg-purple-50 rounded-lg">
-            <div className="text-3xl font-bold text-purple-600 mb-2">88</div>
-            <div className="text-sm font-medium text-purple-800">การป้องกันความเสี่ยง</div>
-            <div className="text-xs text-purple-600">ดี</div>
+          {/* Score Details */}
+          <div className="space-y-4">
+            <h4 className="font-medium text-gray-700 mb-3">รายละเอียดคะแนน</h4>
+            {categoryScores.map((category, index) => (
+              <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center space-x-3">
+                  <div 
+                    className="w-4 h-4 rounded-full"
+                    style={{ backgroundColor: category.fill }}
+                  ></div>
+                  <span className="font-medium text-gray-900">{category.name}</span>
+                </div>
+                <div className="text-right">
+                  <div className="text-2xl font-bold" style={{ color: category.fill }}>
+                    {category.score}
+                  </div>
+                  <div className="text-sm text-gray-500">/100</div>
+                </div>
+              </div>
+            ))}
+            
+            {/* Overall Score */}
+            <div className="mt-6 p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg">
+              <div className="text-center">
+                <div className="text-3xl font-bold text-purple-600 mb-2">
+                  {Math.round(categoryScores.reduce((sum, cat) => sum + cat.score, 0) / categoryScores.length)}
+                </div>
+                <div className="text-sm font-medium text-purple-800">คะแนนรวมเฉลี่ย</div>
+                <div className="text-xs text-purple-600">สุขภาพการเงินโดยรวม</div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Risk Assessment */}
-      <div className="card">
+      {/* <div className="card">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">การประเมินความเสี่ยง</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
@@ -335,7 +408,7 @@ export default function FinancialHealthPage() {
             </div>
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Age-based Standards */}
       <div className="card">
@@ -522,11 +595,222 @@ export default function FinancialHealthPage() {
       {/* Progress Tracking */}
       <div className="card">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">การติดตามความคืบหน้า</h3>
-        <div className="h-64 bg-gray-100 rounded-lg flex items-center justify-center">
-          <div className="text-center">
-            <ChartBarIcon className="w-12 h-12 text-gray-400 mx-auto mb-2" />
-            <p className="text-gray-500">กราฟแสดงความคืบหน้าการปรับปรุงสุขภาพการเงิน</p>
-            <p className="text-sm text-gray-400">จะแสดงกราฟจริงเมื่อเชื่อมต่อ backend</p>
+        
+        {/* Progress Overview Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+          <div className="text-center p-4 bg-green-50 rounded-lg">
+            <div className="text-2xl font-bold text-green-600 mb-1">85%</div>
+            <div className="text-sm text-green-700">ความคืบหน้าทั้งหมด</div>
+          </div>
+          <div className="text-center p-4 bg-blue-50 rounded-lg">
+            <div className="text-2xl font-bold text-blue-600 mb-1">6</div>
+            <div className="text-sm text-blue-700">เดือนที่ติดตาม</div>
+          </div>
+          <div className="text-center p-4 bg-purple-50 rounded-lg">
+            <div className="text-2xl font-bold text-purple-600 mb-1">+12%</div>
+            <div className="text-sm text-purple-700">การปรับปรุงเฉลี่ย</div>
+          </div>
+          <div className="text-center p-4 bg-orange-50 rounded-lg">
+            <div className="text-2xl font-bold text-orange-600 mb-1">4</div>
+            <div className="text-sm text-orange-700">เป้าหมายที่บรรลุ</div>
+          </div>
+        </div>
+
+        {/* Charts Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Line Chart - Financial Ratios Progress */}
+          <div className="card bg-white">
+            <h4 className="font-medium text-gray-700 mb-4">ความคืบหน้าการปรับปรุงอัตราส่วนทางการเงิน</h4>
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={progressData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                  <XAxis 
+                    dataKey="month" 
+                    stroke="#6b7280"
+                    fontSize={12}
+                  />
+                  <YAxis 
+                    stroke="#6b7280"
+                    fontSize={12}
+                    domain={[0, 40]}
+                  />
+                  <Tooltip 
+                    formatter={(value, name) => [
+                      name === 'emergencyFund' ? `${value} เดือน` : `${value}%`, 
+                      name === 'emergencyFund' ? 'เงินออมฉุกเฉิน' :
+                      name === 'debtRatio' ? 'อัตราส่วนหนี้สิน' :
+                      name === 'investmentRatio' ? 'อัตราส่วนการลงทุน' :
+                      'อัตราการออม'
+                    ]}
+                    labelFormatter={(label) => `เดือน: ${label}`}
+                  />
+                  <Legend />
+                  <Line 
+                    type="monotone" 
+                    dataKey="emergencyFund" 
+                    stroke="#10B981" 
+                    strokeWidth={3}
+                    name="เงินออมฉุกเฉิน"
+                    dot={{ fill: '#10B981', strokeWidth: 2, r: 4 }}
+                    activeDot={{ r: 6 }}
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="debtRatio" 
+                    stroke="#EF4444" 
+                    strokeWidth={3}
+                    name="อัตราส่วนหนี้สิน"
+                    dot={{ fill: '#EF4444', strokeWidth: 2, r: 4 }}
+                    activeDot={{ r: 6 }}
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="investmentRatio" 
+                    stroke="#3B82F6" 
+                    strokeWidth={3}
+                    name="อัตราส่วนการลงทุน"
+                    dot={{ fill: '#3B82F6', strokeWidth: 2, r: 4 }}
+                    activeDot={{ r: 6 }}
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="savingsRate" 
+                    stroke="#8B5CF6" 
+                    strokeWidth={3}
+                    name="อัตราการออม"
+                    dot={{ fill: '#8B5CF6', strokeWidth: 2, r: 4 }}
+                    activeDot={{ r: 6 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Area Chart - Monthly Income vs Expenses */}
+          <div className="card bg-white">
+            <h4 className="font-medium text-gray-700 mb-4">รายได้ vs รายจ่าย รายเดือน</h4>
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={monthlyComparison}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                  <XAxis 
+                    dataKey="month" 
+                    stroke="#6b7280"
+                    fontSize={12}
+                  />
+                  <YAxis 
+                    stroke="#6b7280"
+                    fontSize={12}
+                    tickFormatter={(value) => `${(value / 1000).toFixed(0)}K`}
+                  />
+                  <Tooltip 
+                    formatter={(value, name) => [
+                      `฿${value.toLocaleString()}`, 
+                      name === 'income' ? 'รายได้' :
+                      name === 'expenses' ? 'รายจ่าย' :
+                      name === 'savings' ? 'เงินออม' :
+                      'การลงทุน'
+                    ]}
+                    labelFormatter={(label) => `เดือน: ${label}`}
+                  />
+                  <Legend />
+                  <Area 
+                    type="monotone" 
+                    dataKey="income" 
+                    stackId="1"
+                    stroke="#10B981" 
+                    fill="#10B981" 
+                    fillOpacity={0.3}
+                    name="รายได้"
+                  />
+                  <Area 
+                    type="monotone" 
+                    dataKey="expenses" 
+                    stackId="1"
+                    stroke="#EF4444" 
+                    fill="#EF4444" 
+                    fillOpacity={0.3}
+                    name="รายจ่าย"
+                  />
+                  <Area 
+                    type="monotone" 
+                    dataKey="savings" 
+                    stackId="1"
+                    stroke="#3B82F6" 
+                    fill="#3B82F6" 
+                    fillOpacity={0.3}
+                    name="เงินออม"
+                  />
+                  <Area 
+                    type="monotone" 
+                    dataKey="investment" 
+                    stackId="1"
+                    stroke="#8B5CF6" 
+                    fill="#8B82F6" 
+                    fillOpacity={0.3}
+                    name="การลงทุน"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
+
+        {/* Bar Chart - Risk Profile Comparison */}
+        <div className="mt-6">
+          <h4 className="font-medium text-gray-700 mb-4">เปรียบเทียบโปรไฟล์ความเสี่ยง: ปัจจุบัน vs เป้าหมาย</h4>
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={riskProfileData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                <XAxis 
+                  dataKey="metric" 
+                  stroke="#6b7280"
+                  fontSize={12}
+                />
+                <YAxis 
+                  stroke="#6b7280"
+                  fontSize={12}
+                  domain={[0, 60]}
+                />
+                <Tooltip 
+                  formatter={(value, name) => [`${value}%`, name === 'current' ? 'ปัจจุบัน' : 'เป้าหมาย']}
+                />
+                <Legend />
+                <Bar 
+                  dataKey="current" 
+                  fill="#3B82F6" 
+                  name="ปัจจุบัน"
+                  radius={[4, 4, 0, 0]}
+                />
+                <Bar 
+                  dataKey="target" 
+                  fill="#8B5CF6" 
+                  name="เป้าหมาย"
+                  radius={[4, 4, 0, 0]}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Progress Summary */}
+        <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg">
+          <h4 className="font-medium text-blue-900 mb-3">สรุปความคืบหน้า</h4>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+            <div className="text-center">
+              <div className="text-lg font-bold text-blue-600 mb-1">✅ ดีขึ้น</div>
+              <div className="text-blue-700">เงินออมฉุกเฉิน, อัตราการออม, การลงทุน</div>
+            </div>
+            <div className="text-center">
+              <div className="text-lg font-bold text-green-600 mb-1">🔄 คงที่</div>
+              <div className="text-green-700">อัตราส่วนหนี้สิน, ค่าใช้จ่าย</div>
+            </div>
+            <div className="text-center">
+              <div className="text-lg font-bold text-yellow-600 mb-1">📈 เป้าหมาย</div>
+              <div className="text-yellow-700">เพิ่มเงินออมฉุกเฉินเป็น 6 เดือน</div>
+            </div>
           </div>
         </div>
       </div>

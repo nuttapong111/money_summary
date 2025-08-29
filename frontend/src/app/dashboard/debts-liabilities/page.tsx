@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { 
   CreditCardIcon,
   ExclamationTriangleIcon,
@@ -8,19 +9,265 @@ import {
   CalculatorIcon,
   ChartBarIcon,
   ExclamationCircleIcon,
-  InformationCircleIcon
+  InformationCircleIcon,
+  PlusIcon,
+  XMarkIcon
 } from '@heroicons/react/24/outline'
 
-export default function DebtsLiabilitiesPage() {
-  // Mock data
-  const totalDebts = {
-    amount: 800000,
-    monthlyPayment: 25000,
-    interestRate: 8.5,
-    debtToIncome: 16
+// Add Debt Popup Component
+function AddDebtPopup({ isOpen, onClose, onAdd }: {
+  isOpen: boolean
+  onClose: () => void
+  onAdd: (debt: any) => void
+}) {
+  const [formData, setFormData] = useState({
+    name: '',
+    amount: '',
+    interest: '',
+    dueDate: '',
+    type: 'credit',
+    monthlyPayment: '',
+    priority: 'medium'
+  })
+
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const debtTypes = [
+    { value: 'credit', label: 'บัตรเครดิต' },
+    { value: 'car', label: 'รถยนต์' },
+    { value: 'house', label: 'บ้าน' },
+    { value: 'personal', label: 'ส่วนบุคคล' },
+    { value: 'business', label: 'ธุรกิจ' },
+    { value: 'other', label: 'อื่นๆ' }
+  ]
+
+  const priorities = [
+    { value: 'high', label: 'สูง' },
+    { value: 'medium', label: 'ปานกลาง' },
+    { value: 'low', label: 'ต่ำ' }
+  ]
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsSubmitting(true)
+    
+    // Simulate API call
+    setTimeout(() => {
+      const newDebt = {
+        ...formData,
+        amount: parseInt(formData.amount),
+        interest: parseFloat(formData.interest),
+        monthlyPayment: parseInt(formData.monthlyPayment),
+        status: 'active',
+        id: Date.now()
+      }
+      onAdd(newDebt)
+      setIsSubmitting(false)
+      onClose()
+      setFormData({
+        name: '',
+        amount: '',
+        interest: '',
+        dueDate: '',
+        type: 'credit',
+        monthlyPayment: '',
+        priority: 'medium'
+      })
+    }, 1000)
   }
 
-  const debts = [
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    setFormData(prev => ({
+      ...prev,
+      [e.target.name]: e.target.value
+    }))
+  }
+
+  if (!isOpen) return null
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-red-600 to-red-700 text-white p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-2xl font-bold">เพิ่มรายการหนี้สินใหม่</h2>
+              <p className="text-red-100 mt-1">กรอกข้อมูลหนี้สินเพื่อเพิ่มเข้าระบบ</p>
+            </div>
+            <button
+              onClick={onClose}
+              className="text-white hover:text-red-200 transition-colors"
+            >
+              <XMarkIcon className="w-6 h-6" />
+            </button>
+          </div>
+        </div>
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="p-6 overflow-y-auto max-h-[60vh]">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Debt Name */}
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                ชื่อหนี้สิน <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                required
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                placeholder="เช่น บัตรเครดิต, สินเชื่อรถ, สินเชื่อบ้าน"
+              />
+            </div>
+
+            {/* Amount */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                จำนวนเงิน (บาท) <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="number"
+                name="amount"
+                value={formData.amount}
+                onChange={handleChange}
+                required
+                min="0"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                placeholder="0"
+              />
+            </div>
+
+            {/* Interest Rate */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                อัตราดอกเบี้ย (%) <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="number"
+                name="interest"
+                value={formData.interest}
+                onChange={handleChange}
+                required
+                min="0"
+                step="0.1"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                placeholder="0.0"
+              />
+            </div>
+
+            {/* Due Date */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                วันครบกำหนด <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="date"
+                name="dueDate"
+                value={formData.dueDate}
+                onChange={handleChange}
+                required
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+              />
+            </div>
+
+            {/* Monthly Payment */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                ชำระรายเดือน (บาท) <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="number"
+                name="monthlyPayment"
+                value={formData.monthlyPayment}
+                onChange={handleChange}
+                required
+                min="0"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                placeholder="0"
+              />
+            </div>
+
+            {/* Debt Type */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                ประเภทหนี้สิน
+              </label>
+              <select
+                name="type"
+                value={formData.type}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+              >
+                {debtTypes.map((type) => (
+                  <option key={type.value} value={type.value}>
+                    {type.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Priority */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                ความสำคัญ
+              </label>
+              <select
+                name="priority"
+                value={formData.priority}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+              >
+                {priorities.map((priority) => (
+                  <option key={priority.value} value={priority.value}>
+                    {priority.value === 'high' ? 'สูง' :
+                     priority.value === 'medium' ? 'ปานกลาง' : 'ต่ำ'}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </form>
+
+        {/* Footer */}
+        <div className="border-t border-gray-200 p-6 bg-gray-50">
+          <div className="flex justify-end space-x-3">
+            <button
+              onClick={onClose}
+              className="px-6 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 transition-colors"
+            >
+              ยกเลิก
+            </button>
+            <button
+              onClick={handleSubmit}
+              disabled={isSubmitting}
+              className={`px-6 py-2 rounded-lg transition-colors ${
+                isSubmitting
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  : 'bg-red-600 text-white hover:bg-red-700'
+              }`}
+            >
+              {isSubmitting ? (
+                <div className="flex items-center space-x-2">
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <span>กำลังเพิ่ม...</span>
+                </div>
+              ) : (
+                'เพิ่มหนี้สิน'
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default function DebtsLiabilitiesPage() {
+  const [isAddDebtOpen, setIsAddDebtOpen] = useState(false)
+  const [debts, setDebts] = useState([
     {
       name: 'บัตรเครดิต',
       amount: 15000,
@@ -51,7 +298,51 @@ export default function DebtsLiabilitiesPage() {
       status: 'active',
       priority: 'low'
     }
-  ]
+  ])
+
+  // Filter states
+  const [filters, setFilters] = useState({
+    type: 'all',
+    priority: 'all',
+    status: 'all',
+    search: ''
+  })
+
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 5
+
+  // Filter and pagination logic
+  const filteredDebts = debts.filter(debt => {
+    const matchesType = filters.type === 'all' || debt.type === filters.type
+    const matchesPriority = filters.priority === 'all' || debt.priority === filters.priority
+    const matchesStatus = filters.status === 'all' || debt.status === filters.status
+    const matchesSearch = debt.name.toLowerCase().includes(filters.search.toLowerCase()) ||
+                         debt.type.toLowerCase().includes(filters.search.toLowerCase())
+
+    return matchesType && matchesPriority && matchesStatus && matchesSearch
+  })
+
+  const totalPages = Math.ceil(filteredDebts.length / itemsPerPage)
+  const startIndex = (currentPage - 1) * itemsPerPage
+  const endIndex = startIndex + itemsPerPage
+  const currentDebts = filteredDebts.slice(startIndex, endIndex)
+
+  const handleFilterChange = (key: string, value: string) => {
+    setFilters(prev => ({ ...prev, [key]: value }))
+    setCurrentPage(1) // Reset to first page when filtering
+  }
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page)
+  }
+
+  const totalDebts = {
+    amount: 800000,
+    monthlyPayment: 25000,
+    interestRate: 8.5,
+    debtToIncome: 16
+  }
 
   const debtStrategies = {
     snowball: {
@@ -143,6 +434,10 @@ export default function DebtsLiabilitiesPage() {
     }
   }
 
+  const handleAddDebt = (newDebt: any) => {
+    setDebts(prev => [...prev, newDebt])
+  }
+
   return (
     <div className="space-y-6">
       {/* Total Debt Overview */}
@@ -170,9 +465,114 @@ export default function DebtsLiabilitiesPage() {
 
       {/* Debt List */}
       <div className="card">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">รายการหนี้ทั้งหมด</h3>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-gray-900">รายการหนี้ทั้งหมด</h3>
+          <button
+            onClick={() => setIsAddDebtOpen(true)}
+            className="flex items-center space-x-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+          >
+            <PlusIcon className="w-4 h-4" />
+            <span>เพิ่มหนี้สิน</span>
+          </button>
+        </div>
+
+        {/* Filters */}
+        <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+          <h4 className="font-medium text-gray-700 mb-3">ตัวกรองข้อมูล</h4>
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+            {/* Search */}
+            <div>
+              <label className="block text-sm font-medium text-gray-600 mb-1">ค้นหา</label>
+              <input
+                type="text"
+                placeholder="ชื่อหนี้สิน..."
+                value={filters.search}
+                onChange={(e) => handleFilterChange('search', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm"
+              />
+            </div>
+
+            {/* Type Filter */}
+            <div>
+              <label className="block text-sm font-medium text-gray-600 mb-1">ประเภท</label>
+              <select
+                value={filters.type}
+                onChange={(e) => handleFilterChange('type', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm"
+              >
+                <option value="all">ทั้งหมด</option>
+                <option value="credit">บัตรเครดิต</option>
+                <option value="car">รถยนต์</option>
+                <option value="house">บ้าน</option>
+                <option value="personal">ส่วนบุคคล</option>
+                <option value="business">ธุรกิจ</option>
+                <option value="other">อื่นๆ</option>
+              </select>
+            </div>
+
+            {/* Priority Filter */}
+            <div>
+              <label className="block text-sm font-medium text-gray-600 mb-1">ความสำคัญ</label>
+              <select
+                value={filters.priority}
+                onChange={(e) => handleFilterChange('priority', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm"
+              >
+                <option value="all">ทั้งหมด</option>
+                <option value="high">สูง</option>
+                <option value="medium">ปานกลาง</option>
+                <option value="low">ต่ำ</option>
+              </select>
+            </div>
+
+            {/* Status Filter */}
+            <div>
+              <label className="block text-sm font-medium text-gray-600 mb-1">สถานะ</label>
+              <select
+                value={filters.status}
+                onChange={(e) => handleFilterChange('status', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm"
+              >
+                <option value="all">ทั้งหมด</option>
+                <option value="active">ชำระปกติ</option>
+                <option value="overdue">ค้างชำระ</option>
+                <option value="paid">ชำระแล้ว</option>
+              </select>
+            </div>
+
+            {/* Clear Filters */}
+            <div className="flex items-end">
+              <button
+                onClick={() => {
+                  setFilters({
+                    type: 'all',
+                    priority: 'all',
+                    status: 'all',
+                    search: ''
+                  })
+                  setCurrentPage(1)
+                }}
+                className="w-full px-3 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors text-sm"
+              >
+                ล้างตัวกรอง
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Results Summary */}
+        <div className="mb-4 flex items-center justify-between">
+          <div className="text-sm text-gray-600">
+            แสดง {startIndex + 1}-{Math.min(endIndex, filteredDebts.length)} จาก {filteredDebts.length} รายการ
+          </div>
+          <div className="text-sm text-gray-600">
+            หน้าระหว่าง {currentPage} จาก {totalPages}
+          </div>
+        </div>
+
+        {/* Debt Items */}
         <div className="space-y-4">
-          {debts.map((debt, index) => (
+          {currentDebts.map((debt, index) => (
             <div key={index} className="border border-gray-200 rounded-lg p-4">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center space-x-3">
@@ -210,6 +610,78 @@ export default function DebtsLiabilitiesPage() {
             </div>
           ))}
         </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="mt-6 flex items-center justify-center">
+            <nav className="flex items-center space-x-2">
+              {/* Previous Page */}
+              <button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className={`px-3 py-2 rounded-lg border transition-colors ${
+                  currentPage === 1
+                    ? 'border-gray-200 text-gray-400 cursor-not-allowed'
+                    : 'border-gray-300 text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                ก่อนหน้า
+              </button>
+
+              {/* Page Numbers */}
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <button
+                  key={page}
+                  onClick={() => handlePageChange(page)}
+                  className={`px-3 py-2 rounded-lg border transition-colors ${
+                    page === currentPage
+                      ? 'border-red-500 bg-red-50 text-red-600'
+                      : 'border-gray-300 text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  {page}
+                </button>
+              ))}
+
+              {/* Next Page */}
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className={`px-3 py-2 rounded-lg border transition-colors ${
+                  currentPage === totalPages
+                    ? 'border-gray-200 text-gray-400 cursor-not-allowed'
+                    : 'border-gray-300 text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                ถัดไป
+              </button>
+            </nav>
+          </div>
+        )}
+
+        {/* No Results */}
+        {filteredDebts.length === 0 && (
+          <div className="text-center py-8">
+            <div className="text-gray-400 mb-2">
+              <CreditCardIcon className="w-12 h-12 mx-auto" />
+            </div>
+            <p className="text-gray-500">ไม่พบรายการหนี้สินที่ตรงกับเงื่อนไขการค้นหา</p>
+            <button
+              onClick={() => {
+                setFilters({
+                  type: 'all',
+                  priority: 'all',
+                  status: 'all',
+                  search: ''
+                })
+                setCurrentPage(1)
+              }}
+              className="mt-2 text-red-600 hover:text-red-700 text-sm"
+            >
+              ล้างตัวกรอง
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Debt Repayment Strategies */}
@@ -424,6 +896,21 @@ export default function DebtsLiabilitiesPage() {
           </div>
         </div>
       </div>
+
+      {/* Add Debt Button */}
+      <button
+        onClick={() => setIsAddDebtOpen(true)}
+        className="fixed bottom-20 right-6 bg-red-600 text-white p-4 rounded-full shadow-lg hover:bg-red-700 transition-colors z-40"
+      >
+        <PlusIcon className="w-6 h-6" />
+      </button>
+
+      {/* Add Debt Popup */}
+      <AddDebtPopup
+        isOpen={isAddDebtOpen}
+        onClose={() => setIsAddDebtOpen(false)}
+        onAdd={handleAddDebt}
+      />
     </div>
   )
 }
